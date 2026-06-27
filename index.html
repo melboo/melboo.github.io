@@ -2,159 +2,286 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAF6EF" />
   <title>melanie bossert</title>
-  <meta name="description" content="Portfolio of Melanie Bossert." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='14'%3E◍%3C/text%3E%3C/svg%3E" />
+  <meta name="description" content="Portfolio of Melanie Bossert. Soft launch — more soon." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cstyle%3Etext%7Bfont-family:serif;font-style:italic%7D%3C/style%3E%3Ctext y='13' font-size='15'%3Em%3C/text%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg: #0b0b0c;
-      --fg: #f2f2ef;
-      --dim: #6b6b68;
-      --accent: #c9ff3b;
+      --ink: #2A1530;
+      --mute: #6E5570;
+      --paper: #FAF6EF;
+      --g1: #FFD4B8;
+      --g2: #E9C9F0;
+      --g3: #C7D8F2;
+      --g4: #FFEFC4;
+      --g5: #F8C9D4;
+
+      --pad-x: clamp(1rem, 5vw, 2.5rem);
+      --pad-y: clamp(1.25rem, 4vh, 2rem);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: ui-sans-serif, -apple-system, "Inter", system-ui, sans-serif;
-      font-feature-settings: "ss01", "cv11";
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      cursor: crosshair;
+      min-height: 100dvh;
+      min-height: 100vh;
+      font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
-    canvas {
-      position: fixed; inset: 0;
-      width: 100%; height: 100%;
+
+    /* ---------- signature: living gradient mesh ---------- */
+    .mesh {
+      position: fixed;
+      inset: 0;
       z-index: 0;
+      overflow: hidden;
+      filter: blur(60px) saturate(1.1);
+      pointer-events: none;
     }
+    .blob {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 60vmax;
+      height: 60vmax;
+      border-radius: 50%;
+      opacity: 0.85;
+      will-change: transform;
+      transform: translate3d(-50%, -50%, 0);
+    }
+    .b1 { background: var(--g1); }
+    .b2 { background: var(--g2); }
+    .b3 { background: var(--g3); }
+    .b4 { background: var(--g4); }
+    .b5 { background: var(--g5); }
+
+    /* ---------- layout ---------- */
     main {
       position: relative;
       z-index: 1;
-      text-align: center;
-      padding: 2rem;
-      mix-blend-mode: difference;
+      min-height: 100dvh;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding:
+        max(var(--pad-y), env(safe-area-inset-top))
+        var(--pad-x)
+        max(var(--pad-y), env(safe-area-inset-bottom));
+      gap: 1.5rem;
     }
-    h1 {
-      font-size: clamp(3rem, 12vw, 9rem);
+
+    /* ---------- status pill ---------- */
+    .status-bar {
+      display: flex;
+      justify-content: center;
+    }
+    .status {
+      margin: 0;
+      padding: 0.45rem 0.85rem 0.45rem 0.7rem;
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      background: rgba(250, 246, 239, 0.55);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .status::before {
+      content: "";
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    /* ---------- name ---------- */
+    .hero {
+      display: grid;
+      place-items: center;
+    }
+    .name {
+      margin: 0;
+      font-family: 'Instrument Serif', 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(4.25rem, 22vw, 11rem);
+      line-height: 0.86;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      text-align: center;
+      mix-blend-mode: multiply;
+    }
+    .name span { display: block; }
+
+    /* ---------- meta / contact ---------- */
+    .meta {
+      display: flex;
+      justify-content: center;
+    }
+    .contact {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.7rem 1.05rem;
+      font-family: 'Inter Tight', system-ui, sans-serif;
+      font-size: 0.9rem;
       font-weight: 500;
-      letter-spacing: -0.04em;
-      line-height: 0.95;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-decoration: none;
+      background: rgba(250, 246, 239, 0.55);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 999px;
+      transition: background 0.18s ease, transform 0.18s ease;
     }
-    h1 span { color: var(--accent); font-style: italic; }
-    p {
-      margin-top: 1.25rem;
-      color: var(--dim);
-      font-size: clamp(0.9rem, 1.2vw, 1rem);
-      letter-spacing: 0.02em;
+    .contact .arrow {
+      display: inline-block;
+      transition: transform 0.18s ease;
     }
-    .blink::after {
-      content: "▌";
-      margin-left: 0.15em;
-      animation: blink 1s steps(2) infinite;
-      color: var(--accent);
+    .contact:hover,
+    .contact:focus-visible {
+      background: rgba(250, 246, 239, 0.85);
     }
-    @keyframes blink { 50% { opacity: 0; } }
-    footer {
-      position: fixed;
-      bottom: 1rem; left: 0; right: 0;
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--dim);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      z-index: 2;
+    .contact:hover .arrow,
+    .contact:focus-visible .arrow {
+      transform: translate(2px, -2px);
+    }
+    .contact:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 3px;
+    }
+    .contact:active {
+      transform: scale(0.98);
+    }
+
+    /* ---------- desktop refinement ---------- */
+    @media (min-width: 768px) {
+      main { gap: 2rem; }
+      .name { font-size: clamp(7rem, 17vw, 16rem); }
+      .status { font-size: 0.7rem; }
+      .contact { font-size: 0.95rem; }
+    }
+
+    /* ---------- entrance ---------- */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .status-bar { animation: rise 0.7s 0.15s cubic-bezier(.2,.8,.2,1) both; }
+    .hero       { animation: rise 1.0s 0.25s cubic-bezier(.2,.8,.2,1) both; }
+    .meta       { animation: rise 0.7s 0.45s cubic-bezier(.2,.8,.2,1) both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .status-bar, .hero, .meta { animation: none; }
+      .blob { transition: none !important; }
     }
   </style>
 </head>
 <body>
-  <canvas id="c"></canvas>
+  <div class="mesh" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+    <div class="blob b5"></div>
+  </div>
+
   <main>
-    <h1>melanie<br/><span>bossert</span></h1>
-    <p class="blink">portfolio loading</p>
+    <header class="status-bar">
+      <p class="status">june &rsquo;26 &mdash; soft launch</p>
+    </header>
+
+    <section class="hero">
+      <h1 class="name">
+        <span>melanie</span>
+        <span>bossert</span>
+      </h1>
+    </section>
+
+    <footer class="meta">
+      <a class="contact" href="mailto:mnbossert@gmail.com">
+        mnbossert@gmail.com<span class="arrow" aria-hidden="true">&nbsp;↗</span>
+      </a>
+    </footer>
   </main>
-  <footer>↑ move your mouse</footer>
 
   <script>
-    const c = document.getElementById('c');
-    const ctx = c.getContext('2d');
-    let w, h, dpr;
-    let mx = 0, my = 0;
-    const dots = [];
+    (() => {
+      const blobs = Array.from(document.querySelectorAll('.blob'));
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = c.width = window.innerWidth * dpr;
-      h = c.height = window.innerHeight * dpr;
-      c.style.width = window.innerWidth + 'px';
-      c.style.height = window.innerHeight + 'px';
-    }
-    resize();
-    window.addEventListener('resize', resize);
+      // anchor positions (% of viewport) — spread across the canvas
+      const anchors = [
+        { x: 18, y: 22 },
+        { x: 82, y: 28 },
+        { x: 28, y: 78 },
+        { x: 72, y: 82 },
+        { x: 50, y: 50 },
+      ];
+      const cur = anchors.map(a => ({ x: a.x, y: a.y }));
+      const tgt = anchors.map(a => ({ x: a.x, y: a.y }));
 
-    const N = 80;
-    for (let i = 0; i < N; i++) {
-      dots.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-      });
-    }
+      let px = 50, py = 50; // pointer / tap influence
+      const t0 = performance.now();
 
-    window.addEventListener('pointermove', e => {
-      mx = e.clientX * dpr;
-      my = e.clientY * dpr;
-    });
-
-    function tick() {
-      ctx.fillStyle = 'rgba(11, 11, 12, 0.18)';
-      ctx.fillRect(0, 0, w, h);
-
-      for (const d of dots) {
-        const dx = mx - d.x, dy = my - d.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < 220 * dpr) {
-          const f = (220 * dpr - dist) / (220 * dpr) * 0.6;
-          d.vx -= (dx / dist) * f;
-          d.vy -= (dy / dist) * f;
+      function tick(now) {
+        const t = (now - t0) / 1000;
+        for (let i = 0; i < blobs.length; i++) {
+          const drift = {
+            x: Math.sin(t * 0.18 + i * 1.7) * 7,
+            y: Math.cos(t * 0.14 + i * 2.3) * 6,
+          };
+          const sign = (i % 2 === 0) ? 1 : -1;
+          tgt[i].x = anchors[i].x + drift.x + (px - 50) * 0.18 * sign;
+          tgt[i].y = anchors[i].y + drift.y + (py - 50) * 0.18 * sign;
+          cur[i].x += (tgt[i].x - cur[i].x) * 0.06;
+          cur[i].y += (tgt[i].y - cur[i].y) * 0.06;
+          blobs[i].style.transform =
+            `translate3d(calc(${cur[i].x.toFixed(2)}vw - 50%), calc(${cur[i].y.toFixed(2)}vh - 50%), 0)`;
         }
-        d.vx *= 0.96; d.vy *= 0.96;
-        d.x += d.vx; d.y += d.vy;
-        if (d.x < 0) d.x = w; if (d.x > w) d.x = 0;
-        if (d.y < 0) d.y = h; if (d.y > h) d.y = 0;
+        if (!reduce) requestAnimationFrame(tick);
       }
-
-      ctx.strokeStyle = 'rgba(201, 255, 59, 0.25)';
-      ctx.lineWidth = dpr;
-      for (let i = 0; i < N; i++) {
-        for (let j = i + 1; j < N; j++) {
-          const a = dots[i], b = dots[j];
-          const dx = a.x - b.x, dy = a.y - b.y;
-          const d = Math.hypot(dx, dy);
-          if (d < 120 * dpr) {
-            ctx.globalAlpha = 1 - d / (120 * dpr);
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.globalAlpha = 1;
-
-      ctx.fillStyle = '#f2f2ef';
-      for (const d of dots) {
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, 1.5 * dpr, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
       requestAnimationFrame(tick);
-    }
-    tick();
+
+      const isCoarse = matchMedia('(hover: none) and (pointer: coarse)').matches;
+      if (!isCoarse) {
+        addEventListener('pointermove', e => {
+          px = (e.clientX / innerWidth) * 100;
+          py = (e.clientY / innerHeight) * 100;
+        }, { passive: true });
+      }
+
+      // tap / click anywhere = soft pull toward that point, then it relaxes back
+      addEventListener('pointerdown', e => {
+        const x = (e.clientX / innerWidth) * 100;
+        const y = (e.clientY / innerHeight) * 100;
+        px = x; py = y;
+        // settle back toward center over a couple of seconds
+        let n = 0;
+        const home = setInterval(() => {
+          px += (50 - px) * 0.04;
+          py += (50 - py) * 0.04;
+          if (++n > 60) clearInterval(home);
+        }, 33);
+      }, { passive: true });
+    })();
   </script>
 </body>
 </html>
