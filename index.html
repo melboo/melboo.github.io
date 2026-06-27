@@ -66,7 +66,6 @@
       letter-spacing: 0.01em;
       color: var(--mute);
       z-index: 2;
-      pointer-events: auto;
     }
     .top { justify-content: flex-start; }
     .bottom { justify-content: flex-end; }
@@ -86,12 +85,6 @@
       background: var(--ink);
       margin: 0 0.5rem 0.1rem;
       vertical-align: middle;
-    }
-    .status {
-      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.04em;
-      color: var(--mute);
     }
 
     .contact {
@@ -125,42 +118,77 @@
       position: relative;
       display: grid;
       place-items: center;
-      overflow: visible;
+    }
+
+    .blob-wrap {
+      position: relative;
+      width: min(86vw, 86vh, 720px);
+      height: min(86vw, 86vh, 720px);
     }
 
     .blob {
-      width: min(86vw, 86vh, 720px);
-      height: min(86vw, 86vh, 720px);
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
       filter: hue-rotate(var(--hue, 0deg)) saturate(1.05);
-      transition: filter 0.4s linear;
-      will-change: filter;
+      transition: filter 0.6s linear;
+      will-change: filter, transform;
       cursor: grab;
     }
     .blob:active { cursor: grabbing; }
-
-    .blob path {
+    .blob.engaged path#blobPath {
+      filter: drop-shadow(0 18px 70px rgba(38, 26, 46, 0.22));
+    }
+    .blob path#blobPath {
       will-change: d;
       transition: filter 0.3s ease;
     }
-    .blob.touched path {
-      filter: drop-shadow(0 16px 60px rgba(38, 26, 46, 0.18));
+
+    .label {
+      position: absolute;
+      bottom: -1.6rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--mute);
+      text-transform: lowercase;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .label .dot {
+      display: inline-block;
+      width: 0.32rem;
+      height: 0.32rem;
+      border-radius: 50%;
+      background: var(--ink);
+      margin: 0 0.45rem 0.1rem;
+      vertical-align: middle;
+      animation: labelPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes labelPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(0.85); }
+    }
+    .engaged .label {
+      opacity: 0;
+      transform: translateX(-50%) translateY(4px);
     }
 
-    /* very subtle invitation pulse on the blob until first touch */
-    @keyframes inviteHalo {
-      0%, 100% { opacity: 0; transform: scale(0.85); }
-      50%      { opacity: 0.35; transform: scale(1.0); }
+    /* ─── ripple ─── */
+    @keyframes ripple {
+      0%   { r: 4;   stroke-opacity: 0.5; stroke-width: 2; }
+      100% { r: 260; stroke-opacity: 0;   stroke-width: 0.5; }
     }
-    .halo {
-      position: absolute;
-      width: 70%;
-      aspect-ratio: 1;
-      border-radius: 50%;
-      border: 1px dashed rgba(38, 26, 46, 0.18);
-      pointer-events: none;
-      animation: inviteHalo 3.5s ease-in-out infinite;
+    .ripple-circle {
+      fill: none;
+      stroke: var(--ink);
+      animation: ripple 0.95s cubic-bezier(.2,.65,.2,1) forwards;
+      mix-blend-mode: multiply;
     }
-    .stage.engaged .halo { display: none; }
 
     /* ─── desktop refinement ─── */
     @media (min-width: 768px) {
@@ -172,20 +200,22 @@
       }
       .top, .bottom { font-size: 0.85rem; }
       .mark { font-size: 1.2rem; }
-      .blob { width: min(70vmin, 760px); height: min(70vmin, 760px); }
+      .blob-wrap { width: min(70vmin, 760px); height: min(70vmin, 760px); }
+      .label { font-size: 0.78rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .halo { animation: none; opacity: 0; }
+      .label .dot { animation: none; }
+      .ripple-circle { animation: none; opacity: 0; }
     }
 
-    /* page-load reveal */
+    /* ─── page-load reveal ─── */
     @keyframes rise {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .top    { animation: rise 0.7s 0.15s cubic-bezier(.2,.8,.2,1) both; }
-    .stage  { animation: rise 1.0s 0.3s  cubic-bezier(.2,.8,.2,1) both; }
+    .stage  { animation: rise 1.0s 0.30s cubic-bezier(.2,.8,.2,1) both; }
     .bottom { animation: rise 0.7s 0.45s cubic-bezier(.2,.8,.2,1) both; }
     @media (prefers-reduced-motion: reduce) {
       .top, .stage, .bottom { animation: none; }
@@ -199,22 +229,30 @@
     </header>
 
     <section class="stage" id="stage">
-      <span class="halo" aria-hidden="true"></span>
-      <svg class="blob" id="blob" viewBox="-200 -200 400 400" role="img" aria-label="A soft interactive shape. Drag, press, or tap.">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"   stop-color="var(--warm)"   />
-            <stop offset="33%"  stop-color="var(--lilac)"  />
-            <stop offset="66%"  stop-color="var(--sky)"    />
-            <stop offset="100%" stop-color="var(--rose)"   />
-          </linearGradient>
-          <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="0.4"/>
-          </filter>
-        </defs>
-        <path id="blobPath" fill="url(#g)" filter="url(#soft)" />
-      </svg>
-      <span class="status" id="status" aria-live="polite" style="position:absolute;bottom:-1.6rem;left:50%;transform:translateX(-50%);">drag &middot; press</span>
+      <div class="blob-wrap">
+        <svg class="blob" id="blob" viewBox="-200 -200 400 400" role="img" aria-label="A soft interactive shape. Drag, press, or tap.">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stop-color="var(--warm)"   />
+              <stop offset="33%"  stop-color="var(--lilac)"  />
+              <stop offset="66%"  stop-color="var(--sky)"    />
+              <stop offset="100%" stop-color="var(--rose)"   />
+            </linearGradient>
+            <radialGradient id="touchGlow">
+              <stop offset="0%"   stop-color="#261A2E" stop-opacity="0.55"/>
+              <stop offset="55%"  stop-color="#261A2E" stop-opacity="0.14"/>
+              <stop offset="100%" stop-color="#261A2E" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="0.4"/>
+            </filter>
+          </defs>
+          <path id="blobPath" fill="url(#g)" filter="url(#soft)" />
+          <g id="ripples"></g>
+          <g id="indicators"></g>
+        </svg>
+        <span class="label" id="label"><span class="dot"></span>drag &middot; press</span>
+      </div>
     </section>
 
     <footer class="bottom">
@@ -229,15 +267,17 @@
       const svg = document.getElementById('blob');
       const path = document.getElementById('blobPath');
       const stage = document.getElementById('stage');
-      const statusEl = document.getElementById('status');
+      const ripplesGroup = document.getElementById('ripples');
+      const indicatorsGroup = document.getElementById('indicators');
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const SVG_NS = 'http://www.w3.org/2000/svg';
 
-      // ─── geometry ───
-      const N = 32;                 // control points
-      const R = 150;                // rest radius (svg units)
-      const rest = [];              // {x, y} at rest
-      const cur  = [];              // current positions
-      const vel  = [];              // velocity
+      // ─── blob geometry ───
+      const N = 32;
+      const R = 150;
+      const rest = [];
+      const cur  = [];
+      const vel  = [];
       for (let i = 0; i < N; i++) {
         const a = (i / N) * Math.PI * 2;
         rest.push({ x: Math.cos(a) * R, y: Math.sin(a) * R, a });
@@ -245,18 +285,19 @@
         vel.push({ vx: 0, vy: 0 });
       }
 
-      // ─── physics ───
+      // ─── physics constants (cranked up for visibility) ───
       const TENSION = 0.055;
-      const DAMPING = 0.86;
-      const NEIGH_PULL = 0.04;      // small smoothing toward neighbors
-      const TOUCH_RADIUS = 110;
-      const TOUCH_PUSH = 28;
+      const DAMPING = 0.83;
+      const NEIGH_PULL = 0.045;
+      const TOUCH_RADIUS = 160;
+      const TOUCH_PUSH = 48;
 
-      // active pointers: id -> {x, y}
-      const pointers = new Map();
+      // ─── state ───
+      const pointers = new Map();             // id -> {x, y} in svg coords
+      const indicatorEls = new Map();         // id -> SVGCircle
       let engaged = false;
 
-      // ─── path drawing (smooth closed cubic bezier) ───
+      // ─── path builder ───
       function buildPath(points) {
         const n = points.length;
         let d = '';
@@ -276,42 +317,72 @@
         return d + 'Z';
       }
 
-      // ─── ambient: subtle breathing + slow drift on rest positions ───
+      // ─── ambient rest (breathing + wobble) ───
       function ambientRest(i, t) {
         const baseA = rest[i].a;
         const breathe = 1 + 0.022 * Math.sin(t * 0.6);
         const wobble  = 0.06 * Math.sin(t * 0.4 + baseA * 3);
         const r = R * (breathe + wobble);
+        return { x: Math.cos(baseA) * r, y: Math.sin(baseA) * r };
+      }
+
+      // ─── coord helpers ───
+      function clientToSvg(clientX, clientY) {
+        const r = svg.getBoundingClientRect();
         return {
-          x: Math.cos(baseA) * r,
-          y: Math.sin(baseA) * r,
+          x: ((clientX - r.left) / r.width) * 400 - 200,
+          y: ((clientY - r.top)  / r.height) * 400 - 200,
         };
       }
 
-      // ─── coordinate helpers ───
-      function clientToSvg(clientX, clientY) {
-        const r = svg.getBoundingClientRect();
-        const sx = ((clientX - r.left) / r.width) * 400 - 200;
-        const sy = ((clientY - r.top) / r.height) * 400 - 200;
-        return { x: sx, y: sy };
+      // ─── touch indicators (soft glow at each pointer) ───
+      function updateIndicators() {
+        for (const [id, el] of indicatorEls) {
+          if (!pointers.has(id)) { el.remove(); indicatorEls.delete(id); }
+        }
+        for (const [id, p] of pointers) {
+          if (id === 'demo') continue;          // demo is invisible
+          let el = indicatorEls.get(id);
+          if (!el) {
+            el = document.createElementNS(SVG_NS, 'circle');
+            el.setAttribute('r', '38');
+            el.setAttribute('fill', 'url(#touchGlow)');
+            el.setAttribute('pointer-events', 'none');
+            indicatorsGroup.appendChild(el);
+            indicatorEls.set(id, el);
+          }
+          el.setAttribute('cx', p.x.toFixed(1));
+          el.setAttribute('cy', p.y.toFixed(1));
+        }
       }
 
-      // ─── frame ───
+      // ─── ripple on tap ───
+      function emitRipple(svgX, svgY) {
+        const c = document.createElementNS(SVG_NS, 'circle');
+        c.setAttribute('cx', svgX.toFixed(1));
+        c.setAttribute('cy', svgY.toFixed(1));
+        c.setAttribute('class', 'ripple-circle');
+        ripplesGroup.appendChild(c);
+        setTimeout(() => c.remove(), 1000);
+      }
+
+      // ─── main animation loop ───
       let t0 = performance.now();
       let hue = 0;
-      let lastHueUpdate = 0;
+      let hueAccum = 0;
 
       function frame(now) {
         const t = (now - t0) / 1000;
+        const dtMs = 16;
 
-        // slowly drift hue (~2.5 min per cycle)
-        if (now - lastHueUpdate > 100) {
-          hue = (hue + 0.25) % 360;
+        // hue drift — faster when engaged
+        hueAccum += (engaged ? 0.045 : 0.008) * dtMs;
+        if (hueAccum >= 1) {
+          hue = (hue + Math.floor(hueAccum)) % 360;
+          hueAccum -= Math.floor(hueAccum);
           document.documentElement.style.setProperty('--hue', hue + 'deg');
-          lastHueUpdate = now;
         }
 
-        // active touch positions (svg coords)
         const touches = [];
         for (const p of pointers.values()) touches.push(p);
 
@@ -320,17 +391,14 @@
           const p = cur[i];
           const v = vel[i];
 
-          // spring toward animated rest
           v.vx += (target.x - p.x) * TENSION;
           v.vy += (target.y - p.y) * TENSION;
 
-          // neighbor smoothing (keeps the shape coherent)
           const pl = cur[(i - 1 + N) % N];
           const pr = cur[(i + 1) % N];
           v.vx += ((pl.x + pr.x) * 0.5 - p.x) * NEIGH_PULL;
           v.vy += ((pl.y + pr.y) * 0.5 - p.y) * NEIGH_PULL;
 
-          // touch forces: push points away from each finger/cursor
           for (const t2 of touches) {
             const dx = p.x - t2.x;
             const dy = p.y - t2.y;
@@ -349,23 +417,25 @@
         }
 
         path.setAttribute('d', buildPath(cur));
+        updateIndicators();
         if (!reduce) requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
 
-      // ─── pointer interaction ───
+      // ─── engagement state ───
       function setEngaged() {
         if (engaged) return;
         engaged = true;
+        svg.classList.add('engaged');
         stage.classList.add('engaged');
-        svg.classList.add('touched');
-        statusEl.style.opacity = '0';
-        statusEl.style.transition = 'opacity 0.4s ease';
       }
 
+      // ─── pointer events ───
       svg.addEventListener('pointerdown', e => {
         svg.setPointerCapture(e.pointerId);
-        pointers.set(e.pointerId, clientToSvg(e.clientX, e.clientY));
+        const pt = clientToSvg(e.clientX, e.clientY);
+        pointers.set(e.pointerId, pt);
+        emitRipple(pt.x, pt.y);
         setEngaged();
       });
 
@@ -385,16 +455,44 @@
       svg.addEventListener('pointercancel', endPointer);
       svg.addEventListener('pointerleave', endPointer);
 
-      // hover on desktop = soft attraction (no engaged state until click)
+      // desktop hover: soft attract via 'hover' key (no engaged transition)
       if (matchMedia('(hover: hover)').matches) {
         svg.addEventListener('pointermove', e => {
           if (e.pointerType === 'mouse' && !pointers.has(e.pointerId)) {
-            // ephemeral hover point: store under a fake id
             pointers.set('hover', clientToSvg(e.clientX, e.clientY));
           }
         });
         svg.addEventListener('pointerleave', () => pointers.delete('hover'));
       }
+
+      // ─── self-demo: brief sweep on load so you immediately see the interaction ───
+      function runDemo() {
+        if (reduce || engaged) return;
+        const start = performance.now() + 700;
+        const duration = 1800;
+        function step(now) {
+          if (engaged) { pointers.delete('demo'); return; }
+          if (now < start) { requestAnimationFrame(step); return; }
+          const t = (now - start) / duration;
+          if (t >= 1) {
+            pointers.delete('demo');
+            // tiny ripple as it lifts off so the user sees what just happened
+            emitRipple(0, 0);
+            return;
+          }
+          // sweep along a curved arc that visibly squishes the blob
+          const ease = t * t * (3 - 2 * t);
+          const angle = ease * Math.PI * 1.8 - Math.PI * 0.4;
+          const radius = 95 + Math.sin(ease * Math.PI) * 35;
+          pointers.set('demo', {
+            x: Math.cos(angle) * radius,
+            y: Math.sin(angle) * radius,
+          });
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+      runDemo();
     })();
   </script>
 </body>
