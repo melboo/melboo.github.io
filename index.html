@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#F6F1E8" />
   <title>melanie bossert</title>
-  <meta name="description" content="A living surface. Touch it." />
+  <meta name="description" content="A living surface. Tap the bubble." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23E9C9F0'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,6 +22,7 @@
       --sky:   #BFD3F2;
       --butter:#FFE9B5;
       --rose:  #F8C0CE;
+      --shadow: 0 12px 40px rgba(38, 26, 46, 0.12);
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -39,7 +40,6 @@
         radial-gradient(ellipse 80vmax 70vmax at 85% 90%, rgba(191, 211, 242, 0.45), transparent 65%);
       overflow: hidden;
       overscroll-behavior: none;
-      touch-action: none;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
     }
@@ -61,15 +61,12 @@
     .top, .bottom {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
       font-size: 0.78rem;
-      letter-spacing: 0.01em;
       color: var(--mute);
       z-index: 2;
     }
     .top { justify-content: flex-start; }
     .bottom { justify-content: flex-end; }
-
     .mark {
       font-family: 'Instrument Serif', serif;
       font-style: italic;
@@ -79,75 +76,55 @@
     }
     .mark .sep {
       display: inline-block;
-      width: 0.4rem;
-      height: 0.4rem;
+      width: 0.4rem; height: 0.4rem;
       border-radius: 50%;
       background: var(--ink);
       margin: 0 0.5rem 0.1rem;
       vertical-align: middle;
     }
-
     .contact {
       font-family: 'Inter Tight', sans-serif;
       font-size: 0.85rem;
       font-weight: 500;
       color: var(--ink);
       text-decoration: none;
-      letter-spacing: -0.005em;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      padding: 0.35rem 0.6rem;
-      border-radius: 999px;
       transition: background 0.18s ease;
     }
+    .contact:hover, .contact:focus-visible { background: rgba(38, 26, 46, 0.06); }
     .contact .arrow { transition: transform 0.18s ease; }
-    .contact:hover, .contact:focus-visible {
-      background: rgba(38, 26, 46, 0.06);
-    }
-    .contact:hover .arrow, .contact:focus-visible .arrow {
-      transform: translate(2px, -2px);
-    }
-    .contact:focus-visible {
-      outline: 2px solid var(--ink);
-      outline-offset: 3px;
-    }
+    .contact:hover .arrow, .contact:focus-visible .arrow { transform: translate(2px, -2px); }
+    .contact:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-    /* ─── stage ─── */
-    .stage {
-      position: relative;
-      display: grid;
-      place-items: center;
-    }
-
+    /* ─── stage with blob ─── */
+    .stage { position: relative; display: grid; place-items: center; }
     .blob-wrap {
       position: relative;
       width: min(86vw, 86vh, 720px);
       height: min(86vw, 86vh, 720px);
+      overflow: visible;
     }
-
     .blob {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       display: block;
       overflow: visible;
       filter: hue-rotate(var(--hue, 0deg)) saturate(1.05);
       transition: filter 0.6s linear;
-      will-change: filter, transform;
+      will-change: filter;
       cursor: grab;
+      touch-action: none;
     }
     .blob:active { cursor: grabbing; }
-    .blob.engaged path#blobPath {
-      filter: drop-shadow(0 18px 70px rgba(38, 26, 46, 0.22));
-    }
-    .blob path#blobPath {
-      will-change: d;
-      transition: filter 0.3s ease;
-    }
+    .blob.engaged path#blobPath { filter: drop-shadow(0 18px 70px rgba(38,26,46,0.22)); }
+    .blob path#blobPath { will-change: d; transition: filter 0.3s ease; }
 
     .label {
       position: absolute;
-      bottom: -1.6rem;
+      bottom: -1.8rem;
       left: 50%;
       transform: translateX(-50%);
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
@@ -161,8 +138,7 @@
     }
     .label .dot {
       display: inline-block;
-      width: 0.32rem;
-      height: 0.32rem;
+      width: 0.32rem; height: 0.32rem;
       border-radius: 50%;
       background: var(--ink);
       margin: 0 0.45rem 0.1rem;
@@ -173,12 +149,9 @@
       0%, 100% { opacity: 1; transform: scale(1); }
       50%      { opacity: 0.35; transform: scale(0.85); }
     }
-    .engaged .label {
-      opacity: 0;
-      transform: translateX(-50%) translateY(4px);
-    }
+    .engaged .label { opacity: 0; transform: translateX(-50%) translateY(4px); }
 
-    /* ─── ripple ─── */
+    /* ripple */
     @keyframes ripple {
       0%   { r: 4;   stroke-opacity: 0.5; stroke-width: 2; }
       100% { r: 260; stroke-opacity: 0;   stroke-width: 0.5; }
@@ -190,7 +163,263 @@
       mix-blend-mode: multiply;
     }
 
-    /* ─── desktop refinement ─── */
+    /* ─── satellites ─── */
+    .satellite {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      pointer-events: auto;
+      will-change: transform, left, top;
+      font: inherit;
+      color: inherit;
+    }
+    .sat-orb {
+      width: clamp(46px, 11vw, 72px);
+      height: clamp(46px, 11vw, 72px);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.7), transparent 55%),
+        var(--sat-color, var(--lilac));
+      box-shadow: 0 6px 18px rgba(38,26,46,0.18), inset 0 -6px 14px rgba(38,26,46,0.08);
+      transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
+    }
+    .satellite:hover .sat-orb, .satellite:focus-visible .sat-orb { transform: scale(1.12); }
+    .satellite:active .sat-orb { transform: scale(0.94); }
+    .satellite:focus-visible { outline: none; }
+    .satellite:focus-visible .sat-orb { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+    .sat-label {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: clamp(0.82rem, 2.6vw, 1rem);
+      color: var(--ink);
+      white-space: nowrap;
+      background: rgba(246, 241, 232, 0.7);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    /* ─── sheet ─── */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(38, 26, 46, 0.28);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      z-index: 9;
+    }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 92dvh;
+      max-height: 92dvh;
+      background: var(--paper);
+      border-radius: 24px 24px 0 0;
+      transform: translateY(100%);
+      transition: transform 0.45s cubic-bezier(.2,.85,.2,1);
+      z-index: 10;
+      box-shadow: 0 -20px 60px rgba(38,26,46,0.2);
+      display: flex;
+      flex-direction: column;
+      padding:
+        1rem 1.25rem
+        max(1rem, env(safe-area-inset-bottom))
+        1.25rem;
+      will-change: transform;
+    }
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: rgba(38,26,46,0.18);
+      border-radius: 999px;
+      margin: 0 auto 0.75rem;
+      flex: 0 0 auto;
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex: 0 0 auto;
+    }
+    .sheet-id {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--mute);
+      text-transform: lowercase;
+    }
+    .sheet-close {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 0;
+      background: rgba(38, 26, 46, 0.06);
+      color: var(--ink);
+      font-size: 1rem;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: background 0.18s ease;
+    }
+    .sheet-close:hover, .sheet-close:focus-visible { background: rgba(38, 26, 46, 0.12); outline: none; }
+
+    .sheet-hero {
+      margin: 0.75rem 0 1rem;
+      width: 100%;
+      aspect-ratio: 21 / 9;
+      border-radius: 16px;
+      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.6), transparent 60%), var(--hero-color, var(--lilac));
+      flex: 0 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .sheet-title {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: clamp(2rem, 7vw, 2.75rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      color: var(--ink);
+      flex: 0 0 auto;
+    }
+    .sheet-summary {
+      font-size: 0.95rem;
+      color: var(--mute);
+      margin: 0 0 1rem;
+      max-width: 60ch;
+      flex: 0 0 auto;
+    }
+
+    /* ─── chat ─── */
+    .chat {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-top: 1px solid rgba(38,26,46,0.08);
+      padding-top: 0.85rem;
+      gap: 0.75rem;
+    }
+    .conversation {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      list-style: none;
+      margin: 0;
+      padding: 0 0.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      scroll-behavior: smooth;
+    }
+    .msg {
+      max-width: 92%;
+      padding: 0.65rem 0.85rem;
+      border-radius: 16px;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      word-wrap: break-word;
+    }
+    .msg.bot {
+      background: rgba(38, 26, 46, 0.05);
+      color: var(--ink);
+      align-self: flex-start;
+      border-bottom-left-radius: 6px;
+    }
+    .msg.user {
+      background: var(--ink);
+      color: var(--paper);
+      align-self: flex-end;
+      border-bottom-right-radius: 6px;
+    }
+    .msg.intro {
+      background: transparent;
+      color: var(--mute);
+      padding: 0.25rem 0.3rem;
+      font-size: 0.85rem;
+      font-style: italic;
+      max-width: 100%;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0 0.2rem;
+      flex: 0 0 auto;
+    }
+    .chip {
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--ink);
+      background: rgba(38, 26, 46, 0.05);
+      border: 1px solid rgba(38, 26, 46, 0.08);
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.18s;
+      white-space: nowrap;
+    }
+    .chip::before { content: '+ '; opacity: 0.55; }
+    .chip:hover, .chip:focus-visible {
+      background: rgba(38, 26, 46, 0.1);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .chip:active { transform: translateY(0); }
+
+    .composer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+      background: rgba(38, 26, 46, 0.05);
+      border-radius: 999px;
+      padding: 0.4rem 0.4rem 0.4rem 1rem;
+    }
+    .composer input {
+      flex: 1 1 auto;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-size: 0.95rem;
+      color: var(--ink);
+      padding: 0.4rem 0;
+      outline: none;
+    }
+    .composer input::placeholder { color: var(--mute); }
+    .composer button {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 1rem;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: transform 0.18s ease, background 0.18s;
+    }
+    .composer button:hover { transform: scale(1.05); }
+    .composer button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* desktop refinement */
     @media (min-width: 768px) {
       .page {
         padding: max(1.5rem, env(safe-area-inset-top))
@@ -201,15 +430,27 @@
       .top, .bottom { font-size: 0.85rem; }
       .mark { font-size: 1.2rem; }
       .blob-wrap { width: min(70vmin, 760px); height: min(70vmin, 760px); }
-      .label { font-size: 0.78rem; }
+      .sheet {
+        left: 50%;
+        right: auto;
+        bottom: 4vh;
+        width: min(560px, 90vw);
+        height: 86vh;
+        max-height: 86vh;
+        transform: translateX(-50%) translateY(110%);
+        border-radius: 28px;
+        padding: 1.25rem 1.5rem 1.25rem;
+      }
+      .sheet.open { transform: translateX(-50%) translateY(0); }
     }
 
     @media (prefers-reduced-motion: reduce) {
       .label .dot { animation: none; }
       .ripple-circle { animation: none; opacity: 0; }
+      .satellite, .sheet, .backdrop { transition: none !important; }
     }
 
-    /* ─── page-load reveal ─── */
+    /* page-load reveal */
     @keyframes rise {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -220,6 +461,12 @@
     @media (prefers-reduced-motion: reduce) {
       .top, .stage, .bottom { animation: none; }
     }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
   </style>
 </head>
 <body>
@@ -229,14 +476,14 @@
     </header>
 
     <section class="stage" id="stage">
-      <div class="blob-wrap">
-        <svg class="blob" id="blob" viewBox="-200 -200 400 400" role="img" aria-label="A soft interactive shape. Drag, press, or tap.">
+      <div class="blob-wrap" id="blobWrap">
+        <svg class="blob" id="blob" viewBox="-200 -200 400 400" role="img" aria-label="A soft interactive bubble. Tap to reveal projects.">
           <defs>
             <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%"   stop-color="var(--warm)"   />
-              <stop offset="33%"  stop-color="var(--lilac)"  />
-              <stop offset="66%"  stop-color="var(--sky)"    />
-              <stop offset="100%" stop-color="var(--rose)"   />
+              <stop offset="0%"   stop-color="#FFCFB0"/>
+              <stop offset="33%"  stop-color="#E9C9F0"/>
+              <stop offset="66%"  stop-color="#BFD3F2"/>
+              <stop offset="100%" stop-color="#F8C0CE"/>
             </linearGradient>
             <radialGradient id="touchGlow">
               <stop offset="0%"   stop-color="#261A2E" stop-opacity="0.55"/>
@@ -251,7 +498,8 @@
           <g id="ripples"></g>
           <g id="indicators"></g>
         </svg>
-        <span class="label" id="label"><span class="dot"></span>drag &middot; press</span>
+        <span class="label" id="label"><span class="dot"></span>tap the bubble</span>
+        <!-- satellites injected here by JS -->
       </div>
     </section>
 
@@ -262,238 +510,517 @@
     </footer>
   </div>
 
+  <!-- ─── sheet ─── -->
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+  <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
+    <span class="sheet-handle" aria-hidden="true"></span>
+    <div class="sheet-head">
+      <span class="sheet-id" id="sheetId">project · 01</span>
+      <button class="sheet-close" id="sheetClose" aria-label="Close project">×</button>
+    </div>
+    <div class="sheet-hero" id="sheetHero"></div>
+    <h2 class="sheet-title" id="sheetTitle">Project Title</h2>
+    <p class="sheet-summary" id="sheetSummary">One-line summary lives here.</p>
+
+    <section class="chat" aria-label="Ask about this project">
+      <ol class="conversation" id="conv"></ol>
+      <div class="chips" id="chips" role="group" aria-label="Suggested topics"></div>
+      <form class="composer" id="composer" autocomplete="off">
+        <label for="composerInput" class="sr-only">Ask about this project</label>
+        <input id="composerInput" type="text" placeholder="ask about this project…" />
+        <button type="submit" aria-label="Send" id="composerBtn">↗</button>
+      </form>
+    </section>
+  </aside>
+
+  <!-- ─── project data (EDIT ME) ───────────────────────────────────
+       Replace the placeholders with your real projects. Each project has:
+         id, label, color, summary, topics: [{ id, label, answer, related? }]
+       The chat finds the best matching topic by keyword overlap with
+       label + answer. If no match, it offers the topic chips again.
+       ───────────────────────────────────────────────────────────── -->
+  <script type="application/json" id="projects-data">
+  [
+    {
+      "id": "p1",
+      "label": "untitled · 01",
+      "color": "#FFCFB0",
+      "summary": "A placeholder for your first project. Replace this whole block at the bottom of index.html.",
+      "topics": [
+        { "id": "what",    "label": "what is it",    "answer": "A placeholder. Replace me with a real description of what this project is.", "related": ["why", "when"] },
+        { "id": "why",     "label": "why",           "answer": "The reason this project mattered to you. Was it a brief? A side project? A reaction to something?", "related": ["who", "lessons"] },
+        { "id": "when",    "label": "when",          "answer": "A date or a period. Replace this.", "related": ["who"] },
+        { "id": "who",     "label": "who for",       "answer": "Client, team, audience — whoever it was for. Or yourself.", "related": ["what"] },
+        { "id": "tools",   "label": "stack",         "answer": "List the tools, languages, materials, software.", "related": ["process"] },
+        { "id": "process", "label": "process",       "answer": "How you actually made it, in your own words.", "related": ["tools", "lessons"] },
+        { "id": "lessons", "label": "what you learned", "answer": "One or two things that stayed with you afterwards.", "related": ["next"] },
+        { "id": "next",    "label": "what's next",   "answer": "Is it ongoing? Did it spark another project?", "related": ["why"] }
+      ]
+    },
+    {
+      "id": "p2",
+      "label": "untitled · 02",
+      "color": "#BFD3F2",
+      "summary": "Second project placeholder. Each project carries its own chat.",
+      "topics": [
+        { "id": "what",     "label": "what is it",   "answer": "Describe project two.", "related": ["why"] },
+        { "id": "why",      "label": "why",          "answer": "What pulled you into this one.", "related": ["process"] },
+        { "id": "process",  "label": "how you made it", "answer": "Step by step, your way.", "related": ["tools", "people"] },
+        { "id": "tools",    "label": "stack",        "answer": "Tools and materials.", "related": ["process"] },
+        { "id": "people",   "label": "collaborators","answer": "Who you worked with on this.", "related": ["what"] },
+        { "id": "result",   "label": "outcome",      "answer": "How it landed when you released it.", "related": ["why"] }
+      ]
+    },
+    {
+      "id": "p3",
+      "label": "untitled · 03",
+      "color": "#F8C0CE",
+      "summary": "Third placeholder. Add as many projects as you want — the satellites lay out automatically.",
+      "topics": [
+        { "id": "what",        "label": "what is it",        "answer": "Describe project three.", "related": ["inspiration"] },
+        { "id": "inspiration", "label": "inspiration",       "answer": "Where the spark came from.", "related": ["process"] },
+        { "id": "process",     "label": "process",           "answer": "How you went from idea to thing.", "related": ["tools"] },
+        { "id": "tools",       "label": "stack",             "answer": "What you reached for.", "related": ["lessons"] },
+        { "id": "lessons",     "label": "what you learned",  "answer": "What stays with you.", "related": ["inspiration"] }
+      ]
+    }
+  ]
+  </script>
+
   <script>
-    (() => {
-      const svg = document.getElementById('blob');
-      const path = document.getElementById('blobPath');
-      const stage = document.getElementById('stage');
-      const ripplesGroup = document.getElementById('ripples');
-      const indicatorsGroup = document.getElementById('indicators');
-      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const SVG_NS = 'http://www.w3.org/2000/svg';
+    /* ═══════════════════════════════════════════════════════════════
+       1. BLOB — physics, ripples, touch indicators, self-demo
+       ═══════════════════════════════════════════════════════════════ */
+    const svg = document.getElementById('blob');
+    const path = document.getElementById('blobPath');
+    const stage = document.getElementById('stage');
+    const blobWrap = document.getElementById('blobWrap');
+    const ripplesGroup = document.getElementById('ripples');
+    const indicatorsGroup = document.getElementById('indicators');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const SVG_NS = 'http://www.w3.org/2000/svg';
 
-      // ─── blob geometry ───
-      const N = 32;
-      const R = 150;
-      const rest = [];
-      const cur  = [];
-      const vel  = [];
-      for (let i = 0; i < N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        rest.push({ x: Math.cos(a) * R, y: Math.sin(a) * R, a });
-        cur.push({ x: Math.cos(a) * R, y: Math.sin(a) * R });
-        vel.push({ vx: 0, vy: 0 });
+    const N = 32;
+    const R = 130;
+    const rest = [], cur = [], vel = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      rest.push({ x: Math.cos(a) * R, y: Math.sin(a) * R, a });
+      cur.push({ x: Math.cos(a) * R, y: Math.sin(a) * R });
+      vel.push({ vx: 0, vy: 0 });
+    }
+    const TENSION = 0.055, DAMPING = 0.83, NEIGH_PULL = 0.045;
+    const TOUCH_RADIUS = 160, TOUCH_PUSH = 48;
+
+    const pointers = new Map();
+    const indicatorEls = new Map();
+    let engaged = false;
+    let satellitesOut = false;
+
+    function buildPath(points) {
+      const n = points.length;
+      let d = '';
+      for (let i = 0; i < n; i++) {
+        const p0 = points[(i - 1 + n) % n];
+        const p1 = points[i];
+        const p2 = points[(i + 1) % n];
+        const p3 = points[(i + 2) % n];
+        const t = 0.16;
+        const c1x = p1.x + (p2.x - p0.x) * t;
+        const c1y = p1.y + (p2.y - p0.y) * t;
+        const c2x = p2.x - (p3.x - p1.x) * t;
+        const c2y = p2.y - (p3.y - p1.y) * t;
+        if (i === 0) d += `M${p1.x.toFixed(2)},${p1.y.toFixed(2)} `;
+        d += `C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)} `;
       }
+      return d + 'Z';
+    }
 
-      // ─── physics constants (cranked up for visibility) ───
-      const TENSION = 0.055;
-      const DAMPING = 0.83;
-      const NEIGH_PULL = 0.045;
-      const TOUCH_RADIUS = 160;
-      const TOUCH_PUSH = 48;
+    function ambientRest(i, t) {
+      const baseA = rest[i].a;
+      const breathe = 1 + 0.022 * Math.sin(t * 0.6);
+      const wobble  = 0.06 * Math.sin(t * 0.4 + baseA * 3);
+      const r = R * (breathe + wobble);
+      return { x: Math.cos(baseA) * r, y: Math.sin(baseA) * r };
+    }
 
-      // ─── state ───
-      const pointers = new Map();             // id -> {x, y} in svg coords
-      const indicatorEls = new Map();         // id -> SVGCircle
-      let engaged = false;
+    function clientToSvg(clientX, clientY) {
+      const r = svg.getBoundingClientRect();
+      return {
+        x: ((clientX - r.left) / r.width) * 400 - 200,
+        y: ((clientY - r.top)  / r.height) * 400 - 200,
+      };
+    }
 
-      // ─── path builder ───
-      function buildPath(points) {
-        const n = points.length;
-        let d = '';
-        for (let i = 0; i < n; i++) {
-          const p0 = points[(i - 1 + n) % n];
-          const p1 = points[i];
-          const p2 = points[(i + 1) % n];
-          const p3 = points[(i + 2) % n];
-          const t = 0.16;
-          const c1x = p1.x + (p2.x - p0.x) * t;
-          const c1y = p1.y + (p2.y - p0.y) * t;
-          const c2x = p2.x - (p3.x - p1.x) * t;
-          const c2y = p2.y - (p3.y - p1.y) * t;
-          if (i === 0) d += `M${p1.x.toFixed(2)},${p1.y.toFixed(2)} `;
-          d += `C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)} `;
+    function updateIndicators() {
+      for (const [id, el] of indicatorEls) {
+        if (!pointers.has(id)) { el.remove(); indicatorEls.delete(id); }
+      }
+      for (const [id, p] of pointers) {
+        if (id === 'demo') continue;
+        let el = indicatorEls.get(id);
+        if (!el) {
+          el = document.createElementNS(SVG_NS, 'circle');
+          el.setAttribute('r', '38');
+          el.setAttribute('fill', 'url(#touchGlow)');
+          el.setAttribute('pointer-events', 'none');
+          indicatorsGroup.appendChild(el);
+          indicatorEls.set(id, el);
         }
-        return d + 'Z';
+        el.setAttribute('cx', p.x.toFixed(1));
+        el.setAttribute('cy', p.y.toFixed(1));
       }
+    }
 
-      // ─── ambient rest (breathing + wobble) ───
-      function ambientRest(i, t) {
-        const baseA = rest[i].a;
-        const breathe = 1 + 0.022 * Math.sin(t * 0.6);
-        const wobble  = 0.06 * Math.sin(t * 0.4 + baseA * 3);
-        const r = R * (breathe + wobble);
-        return { x: Math.cos(baseA) * r, y: Math.sin(baseA) * r };
-      }
+    function emitRipple(svgX, svgY) {
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('cx', svgX.toFixed(1));
+      c.setAttribute('cy', svgY.toFixed(1));
+      c.setAttribute('class', 'ripple-circle');
+      ripplesGroup.appendChild(c);
+      setTimeout(() => c.remove(), 1000);
+    }
 
-      // ─── coord helpers ───
-      function clientToSvg(clientX, clientY) {
-        const r = svg.getBoundingClientRect();
-        return {
-          x: ((clientX - r.left) / r.width) * 400 - 200,
-          y: ((clientY - r.top)  / r.height) * 400 - 200,
-        };
-      }
+    /* ═══════════════════════════════════════════════════════════════
+       2. PROJECTS + SATELLITES
+       ═══════════════════════════════════════════════════════════════ */
+    const projects = JSON.parse(document.getElementById('projects-data').textContent);
 
-      // ─── touch indicators (soft glow at each pointer) ───
-      function updateIndicators() {
-        for (const [id, el] of indicatorEls) {
-          if (!pointers.has(id)) { el.remove(); indicatorEls.delete(id); }
-        }
-        for (const [id, p] of pointers) {
-          if (id === 'demo') continue;          // demo is invisible
-          let el = indicatorEls.get(id);
-          if (!el) {
-            el = document.createElementNS(SVG_NS, 'circle');
-            el.setAttribute('r', '38');
-            el.setAttribute('fill', 'url(#touchGlow)');
-            el.setAttribute('pointer-events', 'none');
-            indicatorsGroup.appendChild(el);
-            indicatorEls.set(id, el);
-          }
-          el.setAttribute('cx', p.x.toFixed(1));
-          el.setAttribute('cy', p.y.toFixed(1));
-        }
-      }
+    const satellites = projects.map((proj, i) => {
+      const count = projects.length;
+      const baseAngle = -Math.PI / 2 + (i / count) * Math.PI * 2;
+      const baseRadius = 0.40; // fraction of half-wrap from center
+      return {
+        proj,
+        baseAngle,
+        baseRadius,
+        scale: 0,
+        targetScale: 0,
+        el: null,
+      };
+    });
 
-      // ─── ripple on tap ───
-      function emitRipple(svgX, svgY) {
-        const c = document.createElementNS(SVG_NS, 'circle');
-        c.setAttribute('cx', svgX.toFixed(1));
-        c.setAttribute('cy', svgY.toFixed(1));
-        c.setAttribute('class', 'ripple-circle');
-        ripplesGroup.appendChild(c);
-        setTimeout(() => c.remove(), 1000);
-      }
-
-      // ─── main animation loop ───
-      let t0 = performance.now();
-      let hue = 0;
-      let hueAccum = 0;
-
-      function frame(now) {
-        const t = (now - t0) / 1000;
-        const dtMs = 16;
-
-        // hue drift — faster when engaged
-        hueAccum += (engaged ? 0.045 : 0.008) * dtMs;
-        if (hueAccum >= 1) {
-          hue = (hue + Math.floor(hueAccum)) % 360;
-          hueAccum -= Math.floor(hueAccum);
-          document.documentElement.style.setProperty('--hue', hue + 'deg');
-        }
-
-        const touches = [];
-        for (const p of pointers.values()) touches.push(p);
-
-        for (let i = 0; i < N; i++) {
-          const target = ambientRest(i, t);
-          const p = cur[i];
-          const v = vel[i];
-
-          v.vx += (target.x - p.x) * TENSION;
-          v.vy += (target.y - p.y) * TENSION;
-
-          const pl = cur[(i - 1 + N) % N];
-          const pr = cur[(i + 1) % N];
-          v.vx += ((pl.x + pr.x) * 0.5 - p.x) * NEIGH_PULL;
-          v.vy += ((pl.y + pr.y) * 0.5 - p.y) * NEIGH_PULL;
-
-          for (const t2 of touches) {
-            const dx = p.x - t2.x;
-            const dy = p.y - t2.y;
-            const dist = Math.hypot(dx, dy) || 0.001;
-            if (dist < TOUCH_RADIUS) {
-              const f = (1 - dist / TOUCH_RADIUS) * TOUCH_PUSH;
-              v.vx += (dx / dist) * f;
-              v.vy += (dy / dist) * f;
-            }
-          }
-
-          v.vx *= DAMPING;
-          v.vy *= DAMPING;
-          p.x += v.vx;
-          p.y += v.vy;
-        }
-
-        path.setAttribute('d', buildPath(cur));
-        updateIndicators();
-        if (!reduce) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
-
-      // ─── engagement state ───
-      function setEngaged() {
-        if (engaged) return;
-        engaged = true;
-        svg.classList.add('engaged');
-        stage.classList.add('engaged');
-      }
-
-      // ─── pointer events ───
-      svg.addEventListener('pointerdown', e => {
-        svg.setPointerCapture(e.pointerId);
-        const pt = clientToSvg(e.clientX, e.clientY);
-        pointers.set(e.pointerId, pt);
-        emitRipple(pt.x, pt.y);
-        setEngaged();
-      });
-
-      svg.addEventListener('pointermove', e => {
-        if (pointers.has(e.pointerId)) {
-          pointers.set(e.pointerId, clientToSvg(e.clientX, e.clientY));
-        }
-      });
-
-      function endPointer(e) {
-        pointers.delete(e.pointerId);
-        if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
-          try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
-        }
-      }
-      svg.addEventListener('pointerup', endPointer);
-      svg.addEventListener('pointercancel', endPointer);
-      svg.addEventListener('pointerleave', endPointer);
-
-      // desktop hover: soft attract via 'hover' key (no engaged transition)
-      if (matchMedia('(hover: hover)').matches) {
-        svg.addEventListener('pointermove', e => {
-          if (e.pointerType === 'mouse' && !pointers.has(e.pointerId)) {
-            pointers.set('hover', clientToSvg(e.clientX, e.clientY));
-          }
+    function buildSatellites() {
+      satellites.forEach((s, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'satellite';
+        btn.setAttribute('data-project-id', s.proj.id);
+        btn.setAttribute('aria-label', `Open project: ${s.proj.label}`);
+        btn.style.setProperty('--sat-color', s.proj.color);
+        btn.innerHTML = `
+          <span class="sat-orb" aria-hidden="true"></span>
+          <span class="sat-label">${escapeHtml(s.proj.label)}</span>
+        `;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openSheet(s.proj);
         });
-        svg.addEventListener('pointerleave', () => pointers.delete('hover'));
+        blobWrap.appendChild(btn);
+        s.el = btn;
+      });
+    }
+
+    function spawnSatellites() {
+      if (satellitesOut) return;
+      satellitesOut = true;
+      satellites.forEach((s, i) => {
+        setTimeout(() => { s.targetScale = 1; }, 90 * i);
+      });
+      const hint = document.getElementById('label');
+      if (hint) hint.textContent = '· tap a bubble ·';
+    }
+
+    function updateSatellites(t) {
+      for (const s of satellites) {
+        if (!s.el) continue;
+        s.scale += (s.targetScale - s.scale) * 0.18;
+        const angle = s.baseAngle + Math.sin(t * 0.2 + s.baseAngle) * 0.08 + t * 0.04;
+        const r = s.baseRadius + Math.sin(t * 0.5 + s.baseAngle * 2) * 0.018;
+        const x = 50 + Math.cos(angle) * r * 100;
+        const y = 50 + Math.sin(angle) * r * 100;
+        s.el.style.left = x.toFixed(2) + '%';
+        s.el.style.top  = y.toFixed(2) + '%';
+        s.el.style.transform = `translate(-50%, -50%) scale(${s.scale.toFixed(3)})`;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       3. SHEET + CHAT
+       ═══════════════════════════════════════════════════════════════ */
+    const sheet = document.getElementById('sheet');
+    const backdrop = document.getElementById('backdrop');
+    const sheetId = document.getElementById('sheetId');
+    const sheetTitle = document.getElementById('sheetTitle');
+    const sheetSummary = document.getElementById('sheetSummary');
+    const sheetHero = document.getElementById('sheetHero');
+    const sheetClose = document.getElementById('sheetClose');
+    const conv = document.getElementById('conv');
+    const chipsEl = document.getElementById('chips');
+    const composer = document.getElementById('composer');
+    const composerInput = document.getElementById('composerInput');
+
+    let activeProject = null;
+    let askedTopicIds = new Set();
+    const conversations = new Map(); // proj.id -> {messages, asked: Set}
+
+    function openSheet(proj) {
+      activeProject = proj;
+      askedTopicIds = (conversations.get(proj.id)?.asked) || new Set();
+
+      sheetId.textContent = proj.id + ' · ' + (proj.label || 'project');
+      sheetTitle.textContent = proj.label || 'project';
+      sheetSummary.textContent = proj.summary || '';
+      sheetHero.style.setProperty('--hero-color', proj.color || 'var(--lilac)');
+
+      // restore or initialize conversation
+      const existing = conversations.get(proj.id);
+      conv.innerHTML = '';
+      if (existing && existing.messages.length) {
+        existing.messages.forEach(m => appendMsg(m.role, m.text, false));
+      } else {
+        appendMsg('intro', 'ask anything about this project. or pick a topic below.', false);
+        conversations.set(proj.id, { messages: [{ role: 'intro', text: 'ask anything about this project. or pick a topic below.' }], asked: new Set() });
+        askedTopicIds = conversations.get(proj.id).asked;
+      }
+      renderChips(suggestedTopics(proj));
+      composerInput.value = '';
+
+      backdrop.classList.add('open');
+      sheet.classList.add('open');
+      backdrop.setAttribute('aria-hidden', 'false');
+      setTimeout(() => composerInput.focus({ preventScroll: true }), 350);
+    }
+
+    function closeSheet() {
+      sheet.classList.remove('open');
+      backdrop.classList.remove('open');
+      backdrop.setAttribute('aria-hidden', 'true');
+      activeProject = null;
+    }
+    sheetClose.addEventListener('click', closeSheet);
+    backdrop.addEventListener('click', closeSheet);
+    addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('open')) closeSheet(); });
+
+    function appendMsg(role, text, save = true) {
+      const li = document.createElement('li');
+      li.className = 'msg ' + role;
+      li.textContent = text;
+      conv.appendChild(li);
+      conv.scrollTop = conv.scrollHeight;
+      if (save && activeProject) {
+        const c = conversations.get(activeProject.id);
+        c.messages.push({ role, text });
+      }
+    }
+
+    function suggestedTopics(proj, fromTopic = null) {
+      const topics = proj.topics || [];
+      let pool;
+      if (fromTopic && fromTopic.related?.length) {
+        pool = fromTopic.related.map(id => topics.find(t => t.id === id)).filter(Boolean);
+      } else {
+        pool = topics.slice();
+      }
+      // prefer unasked first
+      const unasked = pool.filter(t => !askedTopicIds.has(t.id));
+      const result = (unasked.length ? unasked : pool).slice(0, 5);
+      return result;
+    }
+
+    function renderChips(topics) {
+      chipsEl.innerHTML = '';
+      topics.forEach(t => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip';
+        b.textContent = t.label;
+        b.addEventListener('click', () => askTopic(t));
+        chipsEl.appendChild(b);
+      });
+      if (topics.length === 0) {
+        const note = document.createElement('span');
+        note.className = 'sheet-id';
+        note.textContent = 'no more topics — try typing your own question';
+        chipsEl.appendChild(note);
+      }
+    }
+
+    function askTopic(topic) {
+      if (!activeProject) return;
+      appendMsg('user', topic.label);
+      askedTopicIds.add(topic.id);
+      conversations.get(activeProject.id).asked = askedTopicIds;
+      setTimeout(() => {
+        appendMsg('bot', topic.answer);
+        renderChips(suggestedTopics(activeProject, topic));
+      }, 350);
+    }
+
+    /* ── answer-lookup function. Swap this for a real LLM later. ── */
+    function findBestTopic(query, proj) {
+      const tokens = (query || '').toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 2);
+      if (tokens.length === 0) return null;
+      let best = null, bestScore = 0;
+      for (const t of proj.topics) {
+        const target = (t.label + ' ' + (t.answer || '')).toLowerCase();
+        const score = tokens.filter(tok => target.includes(tok)).length / tokens.length;
+        if (score > bestScore) { best = t; bestScore = score; }
+      }
+      return bestScore >= 0.34 ? best : null;
+    }
+
+    composer.addEventListener('submit', e => {
+      e.preventDefault();
+      const q = composerInput.value.trim();
+      if (!q || !activeProject) return;
+      composerInput.value = '';
+      appendMsg('user', q);
+      const match = findBestTopic(q, activeProject);
+      setTimeout(() => {
+        if (match) {
+          askedTopicIds.add(match.id);
+          conversations.get(activeProject.id).asked = askedTopicIds;
+          appendMsg('bot', match.answer);
+          renderChips(suggestedTopics(activeProject, match));
+        } else {
+          appendMsg('bot', "I don't have an answer for that yet — try one of these:");
+          renderChips(suggestedTopics(activeProject));
+        }
+      }, 380);
+    });
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       4. MAIN LOOP
+       ═══════════════════════════════════════════════════════════════ */
+    let t0 = performance.now();
+    let hue = 0, hueAccum = 0;
+
+    function frame(now) {
+      const t = (now - t0) / 1000;
+      const dtMs = 16;
+
+      hueAccum += (engaged ? 0.045 : 0.008) * dtMs;
+      if (hueAccum >= 1) {
+        hue = (hue + Math.floor(hueAccum)) % 360;
+        hueAccum -= Math.floor(hueAccum);
+        document.documentElement.style.setProperty('--hue', hue + 'deg');
       }
 
-      // ─── self-demo: brief sweep on load so you immediately see the interaction ───
-      function runDemo() {
-        if (reduce || engaged) return;
-        const start = performance.now() + 700;
-        const duration = 1800;
-        function step(now) {
-          if (engaged) { pointers.delete('demo'); return; }
-          if (now < start) { requestAnimationFrame(step); return; }
-          const t = (now - start) / duration;
-          if (t >= 1) {
-            pointers.delete('demo');
-            // tiny ripple as it lifts off so the user sees what just happened
-            emitRipple(0, 0);
-            return;
+      const touches = [];
+      for (const p of pointers.values()) touches.push(p);
+
+      for (let i = 0; i < N; i++) {
+        const target = ambientRest(i, t);
+        const p = cur[i];
+        const v = vel[i];
+        v.vx += (target.x - p.x) * TENSION;
+        v.vy += (target.y - p.y) * TENSION;
+        const pl = cur[(i - 1 + N) % N];
+        const pr = cur[(i + 1) % N];
+        v.vx += ((pl.x + pr.x) * 0.5 - p.x) * NEIGH_PULL;
+        v.vy += ((pl.y + pr.y) * 0.5 - p.y) * NEIGH_PULL;
+        for (const t2 of touches) {
+          const dx = p.x - t2.x;
+          const dy = p.y - t2.y;
+          const dist = Math.hypot(dx, dy) || 0.001;
+          if (dist < TOUCH_RADIUS) {
+            const f = (1 - dist / TOUCH_RADIUS) * TOUCH_PUSH;
+            v.vx += (dx / dist) * f;
+            v.vy += (dy / dist) * f;
           }
-          // sweep along a curved arc that visibly squishes the blob
-          const ease = t * t * (3 - 2 * t);
-          const angle = ease * Math.PI * 1.8 - Math.PI * 0.4;
-          const radius = 95 + Math.sin(ease * Math.PI) * 35;
-          pointers.set('demo', {
-            x: Math.cos(angle) * radius,
-            y: Math.sin(angle) * radius,
-          });
-          requestAnimationFrame(step);
         }
+        v.vx *= DAMPING; v.vy *= DAMPING;
+        p.x += v.vx; p.y += v.vy;
+      }
+
+      path.setAttribute('d', buildPath(cur));
+      updateIndicators();
+      updateSatellites(t);
+      if (!reduce) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    /* ═══════════════════════════════════════════════════════════════
+       5. POINTER EVENTS ON BLOB
+       ═══════════════════════════════════════════════════════════════ */
+    function setEngaged() {
+      if (engaged) return;
+      engaged = true;
+      svg.classList.add('engaged');
+      stage.classList.add('engaged');
+    }
+
+    svg.addEventListener('pointerdown', e => {
+      svg.setPointerCapture(e.pointerId);
+      const pt = clientToSvg(e.clientX, e.clientY);
+      pointers.set(e.pointerId, pt);
+      emitRipple(pt.x, pt.y);
+      setEngaged();
+      spawnSatellites();
+    });
+
+    svg.addEventListener('pointermove', e => {
+      if (pointers.has(e.pointerId)) {
+        pointers.set(e.pointerId, clientToSvg(e.clientX, e.clientY));
+      }
+    });
+
+    function endPointer(e) {
+      pointers.delete(e.pointerId);
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    }
+    svg.addEventListener('pointerup', endPointer);
+    svg.addEventListener('pointercancel', endPointer);
+    svg.addEventListener('pointerleave', endPointer);
+
+    if (matchMedia('(hover: hover)').matches) {
+      svg.addEventListener('pointermove', e => {
+        if (e.pointerType === 'mouse' && !pointers.has(e.pointerId)) {
+          pointers.set('hover', clientToSvg(e.clientX, e.clientY));
+        }
+      });
+      svg.addEventListener('pointerleave', () => pointers.delete('hover'));
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       6. INITIAL SETUP
+       ═══════════════════════════════════════════════════════════════ */
+    buildSatellites();
+
+    // self-demo: brief deform on load so the user immediately sees interactivity
+    function runDemo() {
+      if (reduce || engaged) return;
+      const start = performance.now() + 700;
+      const duration = 1800;
+      function step(now) {
+        if (engaged) { pointers.delete('demo'); return; }
+        if (now < start) { requestAnimationFrame(step); return; }
+        const t = (now - start) / duration;
+        if (t >= 1) {
+          pointers.delete('demo');
+          emitRipple(0, 0);
+          return;
+        }
+        const ease = t * t * (3 - 2 * t);
+        const angle = ease * Math.PI * 1.8 - Math.PI * 0.4;
+        const radius = 85 + Math.sin(ease * Math.PI) * 30;
+        pointers.set('demo', { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
         requestAnimationFrame(step);
       }
-      runDemo();
-    })();
+      requestAnimationFrame(step);
+    }
+    runDemo();
   </script>
 </body>
 </html>
