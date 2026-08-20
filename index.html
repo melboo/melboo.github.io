@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#F6F1E8" />
+  <meta name="theme-color" content="#EFEBE0" />
   <title>melanie bossert</title>
-  <meta name="description" content="A living surface. Tap the bubble." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23E9C9F0'/%3E%3C/svg%3E" />
+  <meta name="description" content="A small living meadow. Each creature is a project — tap one and ask it anything." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%234E7A3A'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,15 +14,15 @@
 
   <style>
     :root {
-      --ink: #261A2E;
-      --mute: #6A5972;
-      --paper: #F6F1E8;
-      --warm: #FFCFB0;
-      --lilac: #E9C9F0;
-      --sky:   #BFD3F2;
-      --butter:#FFE9B5;
-      --rose:  #F8C0CE;
-      --shadow: 0 12px 40px rgba(38, 26, 46, 0.12);
+      --paper: #EFEBE0;
+      --ink: #1C1A16;
+      --mute: #6E6A5E;
+      --green: #4E7A3A;
+      --green-light: #9BE15D;
+      --neon: #47E0D6;
+      --lilac: #D9B8E8;
+      --sky: #A9C7EC;
+      --peach: #F2B98F;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -35,14 +35,22 @@
       font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
       color: var(--ink);
       background: var(--paper);
-      background-image:
-        radial-gradient(ellipse 90vmax 70vmax at 20% 15%, rgba(255, 207, 176, 0.55), transparent 65%),
-        radial-gradient(ellipse 80vmax 70vmax at 85% 90%, rgba(191, 211, 242, 0.45), transparent 65%);
       overflow: hidden;
       overscroll-behavior: none;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
     }
+
+    #world {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    #world.ready { opacity: 1; }
 
     .page {
       position: relative;
@@ -55,18 +63,23 @@
         max(1rem, env(safe-area-inset-right))
         max(1rem, env(safe-area-inset-bottom))
         max(1rem, env(safe-area-inset-left));
-    }
-
-    /* ─── periphery ─── */
-    .top, .bottom {
-      display: flex;
-      align-items: center;
-      font-size: 0.78rem;
-      color: var(--mute);
+      pointer-events: none;
       z-index: 2;
     }
-    .top { justify-content: flex-start; }
-    .bottom { justify-content: flex-end; }
+    .page > * { pointer-events: auto; }
+
+    .top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .mark-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
     .mark {
       font-family: 'Instrument Serif', serif;
       font-style: italic;
@@ -82,138 +95,110 @@
       margin: 0 0.5rem 0.1rem;
       vertical-align: middle;
     }
+    .role-line {
+      font-size: 0.78rem;
+      color: var(--mute);
+    }
+
+    /* ─── murmur-style black chip ticker ─── */
+    .ticker {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      border-radius: 999px;
+      padding: 0.5rem 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      max-width: min(92vw, 520px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.5s ease;
+      box-shadow: 0 4px 18px rgba(28, 26, 22, 0.25);
+    }
+    .ticker .eye {
+      width: 0.45rem; height: 0.45rem;
+      border-radius: 50%;
+      background: var(--green-light);
+      flex: 0 0 auto;
+      animation: tickerPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes tickerPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .ticker.swap { opacity: 0; }
+
+    .bottom {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
     .contact {
-      font-family: 'Inter Tight', sans-serif;
       font-size: 0.85rem;
       font-weight: 500;
       color: var(--ink);
       text-decoration: none;
-      padding: 0.35rem 0.6rem;
+      padding: 0.6rem 0.9rem;
       border-radius: 999px;
+      background: rgba(239, 235, 224, 0.75);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
       transition: background 0.18s ease;
     }
-    .contact:hover, .contact:focus-visible { background: rgba(38, 26, 46, 0.06); }
+    .contact:hover, .contact:focus-visible { background: rgba(239, 235, 224, 0.95); }
     .contact .arrow { transition: transform 0.18s ease; }
     .contact:hover .arrow, .contact:focus-visible .arrow { transform: translate(2px, -2px); }
     .contact:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-    /* ─── stage with blob ─── */
-    .stage { position: relative; display: grid; place-items: center; }
-    .blob-wrap {
-      position: relative;
-      width: min(86vw, 86vh, 720px);
-      height: min(86vw, 86vh, 720px);
-      overflow: visible;
-    }
-    .blob {
-      width: 100%; height: 100%;
-      display: block;
-      overflow: visible;
-      filter: hue-rotate(var(--hue, 0deg)) saturate(1.05);
-      transition: filter 0.6s linear;
-      will-change: filter;
-      cursor: grab;
-      touch-action: none;
-    }
-    .blob:active { cursor: grabbing; }
-    .blob.engaged path#blobPath { filter: drop-shadow(0 18px 70px rgba(38,26,46,0.22)); }
-    .blob path#blobPath { will-change: d; transition: filter 0.3s ease; }
-
-    .label {
-      position: absolute;
-      bottom: -1.8rem;
-      left: 50%;
-      transform: translateX(-50%);
+    /* ─── creature labels (murmur chip style) ─── */
+    .creature-btn {
+      position: fixed;
+      transform: translate(-50%, 0);
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      color: var(--mute);
-      text-transform: lowercase;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    .label .dot {
-      display: inline-block;
-      width: 0.32rem; height: 0.32rem;
-      border-radius: 50%;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
       background: var(--ink);
-      margin: 0 0.45rem 0.1rem;
-      vertical-align: middle;
-      animation: labelPulse 1.6s ease-in-out infinite;
-    }
-    @keyframes labelPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.35; transform: scale(0.85); }
-    }
-    .engaged .label { opacity: 0; transform: translateX(-50%) translateY(4px); }
-
-    /* ripple */
-    @keyframes ripple {
-      0%   { r: 4;   stroke-opacity: 0.5; stroke-width: 2; }
-      100% { r: 260; stroke-opacity: 0;   stroke-width: 0.5; }
-    }
-    .ripple-circle {
-      fill: none;
-      stroke: var(--ink);
-      animation: ripple 0.95s cubic-bezier(.2,.65,.2,1) forwards;
-      mix-blend-mode: multiply;
-    }
-
-    /* ─── satellites ─── */
-    .satellite {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-      background: transparent;
       border: 0;
-      padding: 0;
-      cursor: pointer;
-      pointer-events: auto;
-      will-change: transform, left, top;
-      font: inherit;
-      color: inherit;
-    }
-    .sat-orb {
-      width: clamp(46px, 11vw, 72px);
-      height: clamp(46px, 11vw, 72px);
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.7), transparent 55%),
-        var(--sat-color, var(--lilac));
-      box-shadow: 0 6px 18px rgba(38,26,46,0.18), inset 0 -6px 14px rgba(38,26,46,0.08);
-      transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
-    }
-    .satellite:hover .sat-orb, .satellite:focus-visible .sat-orb { transform: scale(1.12); }
-    .satellite:active .sat-orb { transform: scale(0.94); }
-    .satellite:focus-visible { outline: none; }
-    .satellite:focus-visible .sat-orb { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
-    .sat-label {
-      font-family: 'Instrument Serif', serif;
-      font-style: italic;
-      font-size: clamp(0.82rem, 2.6vw, 1rem);
-      color: var(--ink);
-      white-space: nowrap;
-      background: rgba(246, 241, 232, 0.7);
-      -webkit-backdrop-filter: blur(8px);
-      backdrop-filter: blur(8px);
-      padding: 0.15rem 0.55rem;
       border-radius: 999px;
+      padding: 0.5rem 0.9rem;
+      cursor: pointer;
+      z-index: 3;
+      transition: opacity 0.4s ease, background 0.18s ease;
+      white-space: nowrap;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(28, 26, 22, 0.25);
+    }
+    .creature-btn .dot {
+      width: 0.4rem; height: 0.4rem;
+      border-radius: 50%;
+      background: var(--dot, var(--green-light));
+      flex: 0 0 auto;
+    }
+    .creature-btn:hover { background: #2E2B25; }
+    .creature-btn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 3px;
+      opacity: 1 !important;
     }
 
     /* ─── sheet ─── */
     .backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(38, 26, 46, 0.28);
+      background: rgba(28, 26, 22, 0.35);
       -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
       opacity: 0;
@@ -230,28 +215,24 @@
       max-height: 92dvh;
       background: var(--paper);
       border-radius: 24px 24px 0 0;
-      transform: translateY(100%);
+      transform: translateY(102%);
       transition: transform 0.45s cubic-bezier(.2,.85,.2,1);
       z-index: 10;
-      box-shadow: 0 -20px 60px rgba(38,26,46,0.2);
+      box-shadow: 0 -20px 60px rgba(28,26,22,0.3);
       display: flex;
       flex-direction: column;
-      padding:
-        1rem 1.25rem
-        max(1rem, env(safe-area-inset-bottom))
-        1.25rem;
+      padding: 1rem 1.25rem max(1rem, env(safe-area-inset-bottom));
       will-change: transform;
     }
     .sheet.open { transform: translateY(0); }
 
     .sheet-handle {
       width: 36px; height: 4px;
-      background: rgba(38,26,46,0.18);
+      background: rgba(28,26,22,0.18);
       border-radius: 999px;
       margin: 0 auto 0.75rem;
       flex: 0 0 auto;
     }
-
     .sheet-head {
       display: flex;
       align-items: center;
@@ -264,45 +245,54 @@
       font-size: 0.7rem;
       letter-spacing: 0.08em;
       color: var(--mute);
-      text-transform: lowercase;
+      text-transform: uppercase;
     }
     .sheet-close {
-      width: 36px; height: 36px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       border: 0;
-      background: rgba(38, 26, 46, 0.06);
+      background: rgba(28, 26, 22, 0.06);
       color: var(--ink);
-      font-size: 1rem;
+      font-size: 1.1rem;
       cursor: pointer;
       display: grid; place-items: center;
       transition: background 0.18s ease;
+      flex: 0 0 auto;
     }
-    .sheet-close:hover, .sheet-close:focus-visible { background: rgba(38, 26, 46, 0.12); outline: none; }
+    .sheet-close:hover, .sheet-close:focus-visible { background: rgba(28, 26, 22, 0.12); outline: none; }
 
     .sheet-hero {
       margin: 0.75rem 0 1rem;
       width: 100%;
       aspect-ratio: 21 / 9;
       border-radius: 16px;
-      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.6), transparent 60%), var(--hero-color, var(--lilac));
+      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.5), transparent 60%), var(--hero-color, var(--lilac));
       flex: 0 0 auto;
-      position: relative;
       overflow: hidden;
     }
     .sheet-title {
       font-family: 'Instrument Serif', serif;
       font-style: italic;
-      font-size: clamp(2rem, 7vw, 2.75rem);
+      font-size: clamp(1.8rem, 6.5vw, 2.5rem);
       line-height: 1;
       letter-spacing: -0.02em;
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.35rem;
       color: var(--ink);
+      flex: 0 0 auto;
+    }
+    .sheet-role {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin: 0 0 0.5rem;
       flex: 0 0 auto;
     }
     .sheet-summary {
       font-size: 0.95rem;
       color: var(--mute);
-      margin: 0 0 1rem;
+      margin: 0 0 0.85rem;
       max-width: 60ch;
       flex: 0 0 auto;
     }
@@ -313,7 +303,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      border-top: 1px solid rgba(38,26,46,0.08);
+      border-top: 1px solid rgba(28,26,22,0.08);
       padding-top: 0.85rem;
       gap: 0.75rem;
     }
@@ -337,7 +327,7 @@
       word-wrap: break-word;
     }
     .msg.bot {
-      background: rgba(38, 26, 46, 0.05);
+      background: rgba(28, 26, 22, 0.05);
       color: var(--ink);
       align-self: flex-start;
       border-bottom-left-radius: 6px;
@@ -356,6 +346,26 @@
       font-style: italic;
       max-width: 100%;
     }
+    .msg.typing {
+      display: inline-flex;
+      gap: 0.3rem;
+      align-items: center;
+      background: rgba(28, 26, 22, 0.05);
+      align-self: flex-start;
+      border-bottom-left-radius: 6px;
+    }
+    .msg.typing i {
+      width: 0.35rem; height: 0.35rem;
+      border-radius: 50%;
+      background: var(--mute);
+      animation: typing 1.1s ease-in-out infinite;
+    }
+    .msg.typing i:nth-child(2) { animation-delay: 0.15s; }
+    .msg.typing i:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-3px); opacity: 1; }
+    }
 
     .chips {
       display: flex;
@@ -366,33 +376,33 @@
     }
     .chip {
       font: inherit;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 500;
       color: var(--ink);
-      background: rgba(38, 26, 46, 0.05);
-      border: 1px solid rgba(38, 26, 46, 0.08);
-      padding: 0.35rem 0.7rem;
+      background: rgba(28, 26, 22, 0.05);
+      border: 1px solid rgba(28, 26, 22, 0.08);
+      padding: 0.6rem 0.9rem;
       border-radius: 999px;
       cursor: pointer;
       transition: background 0.18s, transform 0.18s;
       white-space: nowrap;
+      min-height: 40px;
     }
     .chip::before { content: '+ '; opacity: 0.55; }
     .chip:hover, .chip:focus-visible {
-      background: rgba(38, 26, 46, 0.1);
+      background: rgba(28, 26, 22, 0.1);
       transform: translateY(-1px);
       outline: none;
     }
-    .chip:active { transform: translateY(0); }
 
     .composer {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       flex: 0 0 auto;
-      background: rgba(38, 26, 46, 0.05);
+      background: rgba(28, 26, 22, 0.05);
       border-radius: 999px;
-      padding: 0.4rem 0.4rem 0.4rem 1rem;
+      padding: 0.35rem 0.35rem 0.35rem 1rem;
     }
     .composer input {
       flex: 1 1 auto;
@@ -401,12 +411,13 @@
       font: inherit;
       font-size: 0.95rem;
       color: var(--ink);
-      padding: 0.4rem 0;
+      padding: 0.5rem 0;
       outline: none;
+      min-width: 0;
     }
     .composer input::placeholder { color: var(--mute); }
     .composer button {
-      width: 36px; height: 36px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       border: 0;
       background: var(--ink);
@@ -414,12 +425,11 @@
       font-size: 1rem;
       cursor: pointer;
       display: grid; place-items: center;
-      transition: transform 0.18s ease, background 0.18s;
+      transition: transform 0.18s ease;
+      flex: 0 0 auto;
     }
     .composer button:hover { transform: scale(1.05); }
-    .composer button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-    /* desktop refinement */
     @media (min-width: 768px) {
       .page {
         padding: max(1.5rem, env(safe-area-inset-top))
@@ -427,16 +437,15 @@
                  max(1.5rem, env(safe-area-inset-bottom))
                  max(2rem, env(safe-area-inset-left));
       }
-      .top, .bottom { font-size: 0.85rem; }
       .mark { font-size: 1.2rem; }
-      .blob-wrap { width: min(70vmin, 760px); height: min(70vmin, 760px); }
+      .role-line { font-size: 0.85rem; }
+      .ticker { font-size: 0.74rem; }
       .sheet {
         left: 50%;
         right: auto;
         bottom: 4vh;
         width: min(560px, 90vw);
         height: 86vh;
-        max-height: 86vh;
         transform: translateX(-50%) translateY(110%);
         border-radius: 28px;
         padding: 1.25rem 1.5rem 1.25rem;
@@ -445,21 +454,19 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .label .dot { animation: none; }
-      .ripple-circle { animation: none; opacity: 0; }
-      .satellite, .sheet, .backdrop { transition: none !important; }
+      .ticker .eye { animation: none; }
+      .msg.typing i { animation: none; }
+      .sheet, .backdrop, .creature-btn, #world { transition: none !important; }
     }
 
-    /* page-load reveal */
     @keyframes rise {
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .top    { animation: rise 0.7s 0.15s cubic-bezier(.2,.8,.2,1) both; }
-    .stage  { animation: rise 1.0s 0.30s cubic-bezier(.2,.8,.2,1) both; }
     .bottom { animation: rise 0.7s 0.45s cubic-bezier(.2,.8,.2,1) both; }
     @media (prefers-reduced-motion: reduce) {
-      .top, .stage, .bottom { animation: none; }
+      .top, .bottom { animation: none; }
     }
 
     .sr-only {
@@ -468,40 +475,24 @@
       clip: rect(0,0,0,0); white-space: nowrap; border: 0;
     }
   </style>
+
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js" } }
+  </script>
 </head>
 <body>
+  <canvas id="world" aria-hidden="true"></canvas>
+
   <div class="page">
     <header class="top">
-      <span class="mark"><em>m.</em><span class="sep"></span><em>bossert</em></span>
+      <div class="mark-row">
+        <span class="mark"><em>m.</em><span class="sep"></span><em>bossert</em></span>
+        <span class="role-line">a small ecosystem of projects</span>
+      </div>
+      <p class="ticker" id="ticker"><span class="eye"></span><span id="tickerText">the meadow is waking up…</span></p>
     </header>
 
-    <section class="stage" id="stage">
-      <div class="blob-wrap" id="blobWrap">
-        <svg class="blob" id="blob" viewBox="-200 -200 400 400" role="img" aria-label="A soft interactive bubble. Tap to reveal projects.">
-          <defs>
-            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%"   stop-color="#FFCFB0"/>
-              <stop offset="33%"  stop-color="#E9C9F0"/>
-              <stop offset="66%"  stop-color="#BFD3F2"/>
-              <stop offset="100%" stop-color="#F8C0CE"/>
-            </linearGradient>
-            <radialGradient id="touchGlow">
-              <stop offset="0%"   stop-color="#261A2E" stop-opacity="0.55"/>
-              <stop offset="55%"  stop-color="#261A2E" stop-opacity="0.14"/>
-              <stop offset="100%" stop-color="#261A2E" stop-opacity="0"/>
-            </radialGradient>
-            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="0.4"/>
-            </filter>
-          </defs>
-          <path id="blobPath" fill="url(#g)" filter="url(#soft)" />
-          <g id="ripples"></g>
-          <g id="indicators"></g>
-        </svg>
-        <span class="label" id="label"><span class="dot"></span>tap the bubble</span>
-        <!-- satellites injected here by JS -->
-      </div>
-    </section>
+    <div></div>
 
     <footer class="bottom">
       <a class="contact" href="mailto:mnbossert@gmail.com">
@@ -510,247 +501,553 @@
     </footer>
   </div>
 
-  <!-- ─── sheet ─── -->
   <div class="backdrop" id="backdrop" aria-hidden="true"></div>
   <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
     <span class="sheet-handle" aria-hidden="true"></span>
     <div class="sheet-head">
-      <span class="sheet-id" id="sheetId">project · 01</span>
+      <span class="sheet-id" id="sheetId">project</span>
       <button class="sheet-close" id="sheetClose" aria-label="Close project">×</button>
     </div>
     <div class="sheet-hero" id="sheetHero"></div>
-    <h2 class="sheet-title" id="sheetTitle">Project Title</h2>
-    <p class="sheet-summary" id="sheetSummary">One-line summary lives here.</p>
+    <h2 class="sheet-title" id="sheetTitle">Project</h2>
+    <p class="sheet-role" id="sheetRole"></p>
+    <p class="sheet-summary" id="sheetSummary"></p>
 
     <section class="chat" aria-label="Ask about this project">
-      <ol class="conversation" id="conv"></ol>
+      <ol class="conversation" id="conv" aria-live="polite"></ol>
       <div class="chips" id="chips" role="group" aria-label="Suggested topics"></div>
       <form class="composer" id="composer" autocomplete="off">
         <label for="composerInput" class="sr-only">Ask about this project</label>
         <input id="composerInput" type="text" placeholder="ask about this project…" />
-        <button type="submit" aria-label="Send" id="composerBtn">↗</button>
+        <button type="submit" aria-label="Send">↗</button>
       </form>
     </section>
   </aside>
 
-  <!-- ─── project data (EDIT ME) ───────────────────────────────────
-       Replace the placeholders with your real projects. Each project has:
-         id, label, color, summary, topics: [{ id, label, answer, related? }]
-       The chat finds the best matching topic by keyword overlap with
-       label + answer. If no match, it offers the topic chips again.
-       ───────────────────────────────────────────────────────────── -->
+  <!-- ─── project data (EDIT ME) ──────────────────────────────────
+       species: "jelly" (floats + pulses) | "moth" (flies in loops) | "crawler" (ambles the meadow)
+       role: your role — shown under the title and askable in chat.
+       ────────────────────────────────────────────────────────────── -->
   <script type="application/json" id="projects-data">
   [
     {
       "id": "p1",
       "label": "untitled · 01",
-      "color": "#FFCFB0",
-      "summary": "A placeholder for your first project. Replace this whole block at the bottom of index.html.",
+      "species": "jelly",
+      "color": "#D9B8E8",
+      "role": "role — concept & design",
+      "summary": "A placeholder for your first project. Replace this data block at the bottom of index.html.",
       "topics": [
-        { "id": "what",    "label": "what is it",    "answer": "A placeholder. Replace me with a real description of what this project is.", "related": ["why", "when"] },
-        { "id": "why",     "label": "why",           "answer": "The reason this project mattered to you. Was it a brief? A side project? A reaction to something?", "related": ["who", "lessons"] },
-        { "id": "when",    "label": "when",          "answer": "A date or a period. Replace this.", "related": ["who"] },
-        { "id": "who",     "label": "who for",       "answer": "Client, team, audience — whoever it was for. Or yourself.", "related": ["what"] },
-        { "id": "tools",   "label": "stack",         "answer": "List the tools, languages, materials, software.", "related": ["process"] },
-        { "id": "process", "label": "process",       "answer": "How you actually made it, in your own words.", "related": ["tools", "lessons"] },
-        { "id": "lessons", "label": "what you learned", "answer": "One or two things that stayed with you afterwards.", "related": ["next"] },
-        { "id": "next",    "label": "what's next",   "answer": "Is it ongoing? Did it spark another project?", "related": ["why"] }
+        { "id": "what",    "label": "what is it",   "answer": "A placeholder. Replace me with a real description of what this project is.", "related": ["role", "why"] },
+        { "id": "role",    "label": "my role",      "answer": "Describe what YOU did: concept? design? code? research? leading? Replace me.", "related": ["process", "team"] },
+        { "id": "why",     "label": "why",          "answer": "The reason this project mattered to you.", "related": ["role"] },
+        { "id": "team",    "label": "the team",     "answer": "Who else was involved, and how you worked together.", "related": ["role"] },
+        { "id": "process", "label": "process",      "answer": "How you actually made it, in your own words.", "related": ["tools", "lessons"] },
+        { "id": "tools",   "label": "stack",        "answer": "Tools, languages, materials.", "related": ["process"] },
+        { "id": "lessons", "label": "what I learned", "answer": "One or two things that stayed with you.", "related": ["why"] }
       ]
     },
     {
       "id": "p2",
       "label": "untitled · 02",
-      "color": "#BFD3F2",
-      "summary": "Second project placeholder. Each project carries its own chat.",
+      "species": "moth",
+      "color": "#A9C7EC",
+      "role": "role — tbd",
+      "summary": "Second project placeholder. Each creature carries its own chat.",
       "topics": [
-        { "id": "what",     "label": "what is it",   "answer": "Describe project two.", "related": ["why"] },
-        { "id": "why",      "label": "why",          "answer": "What pulled you into this one.", "related": ["process"] },
-        { "id": "process",  "label": "how you made it", "answer": "Step by step, your way.", "related": ["tools", "people"] },
-        { "id": "tools",    "label": "stack",        "answer": "Tools and materials.", "related": ["process"] },
-        { "id": "people",   "label": "collaborators","answer": "Who you worked with on this.", "related": ["what"] },
-        { "id": "result",   "label": "outcome",      "answer": "How it landed when you released it.", "related": ["why"] }
+        { "id": "what",    "label": "what is it",   "answer": "Describe project two.", "related": ["role"] },
+        { "id": "role",    "label": "my role",      "answer": "What you did on this one.", "related": ["process"] },
+        { "id": "process", "label": "how it was made", "answer": "Step by step, your way.", "related": ["tools"] },
+        { "id": "tools",   "label": "stack",        "answer": "Tools and materials.", "related": ["result"] },
+        { "id": "result",  "label": "outcome",      "answer": "How it landed when released.", "related": ["role"] }
       ]
     },
     {
       "id": "p3",
       "label": "untitled · 03",
-      "color": "#F8C0CE",
-      "summary": "Third placeholder. Add as many projects as you want — the satellites lay out automatically.",
+      "species": "crawler",
+      "color": "#F2B98F",
+      "role": "role — tbd",
+      "summary": "Third placeholder. Add more projects and more creatures appear in the meadow.",
       "topics": [
-        { "id": "what",        "label": "what is it",        "answer": "Describe project three.", "related": ["inspiration"] },
-        { "id": "inspiration", "label": "inspiration",       "answer": "Where the spark came from.", "related": ["process"] },
-        { "id": "process",     "label": "process",           "answer": "How you went from idea to thing.", "related": ["tools"] },
-        { "id": "tools",       "label": "stack",             "answer": "What you reached for.", "related": ["lessons"] },
-        { "id": "lessons",     "label": "what you learned",  "answer": "What stays with you.", "related": ["inspiration"] }
+        { "id": "what",        "label": "what is it",  "answer": "Describe project three.", "related": ["role"] },
+        { "id": "role",        "label": "my role",     "answer": "Your part in it.", "related": ["inspiration"] },
+        { "id": "inspiration", "label": "inspiration", "answer": "Where the spark came from.", "related": ["process"] },
+        { "id": "process",     "label": "process",     "answer": "Idea to thing.", "related": ["lessons"] },
+        { "id": "lessons",     "label": "what I learned", "answer": "What stays with you.", "related": ["role"] }
       ]
     }
   ]
   </script>
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════════
-       1. BLOB — physics, ripples, touch indicators, self-demo
-       ═══════════════════════════════════════════════════════════════ */
-    const svg = document.getElementById('blob');
-    const path = document.getElementById('blobPath');
-    const stage = document.getElementById('stage');
-    const blobWrap = document.getElementById('blobWrap');
-    const ripplesGroup = document.getElementById('ripples');
-    const indicatorsGroup = document.getElementById('indicators');
+  <script type="module">
+    import * as THREE from 'three';
+
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const SVG_NS = 'http://www.w3.org/2000/svg';
-
-    const N = 32;
-    const R = 130;
-    const rest = [], cur = [], vel = [];
-    for (let i = 0; i < N; i++) {
-      const a = (i / N) * Math.PI * 2;
-      rest.push({ x: Math.cos(a) * R, y: Math.sin(a) * R, a });
-      cur.push({ x: Math.cos(a) * R, y: Math.sin(a) * R });
-      vel.push({ vx: 0, vy: 0 });
-    }
-    const TENSION = 0.055, DAMPING = 0.83, NEIGH_PULL = 0.045;
-    const TOUCH_RADIUS = 160, TOUCH_PUSH = 48;
-
-    const pointers = new Map();
-    const indicatorEls = new Map();
-    let engaged = false;
-    let satellitesOut = false;
-
-    function buildPath(points) {
-      const n = points.length;
-      let d = '';
-      for (let i = 0; i < n; i++) {
-        const p0 = points[(i - 1 + n) % n];
-        const p1 = points[i];
-        const p2 = points[(i + 1) % n];
-        const p3 = points[(i + 2) % n];
-        const t = 0.16;
-        const c1x = p1.x + (p2.x - p0.x) * t;
-        const c1y = p1.y + (p2.y - p0.y) * t;
-        const c2x = p2.x - (p3.x - p1.x) * t;
-        const c2y = p2.y - (p3.y - p1.y) * t;
-        if (i === 0) d += `M${p1.x.toFixed(2)},${p1.y.toFixed(2)} `;
-        d += `C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)} `;
-      }
-      return d + 'Z';
-    }
-
-    function ambientRest(i, t) {
-      const baseA = rest[i].a;
-      const breathe = 1 + 0.022 * Math.sin(t * 0.6);
-      const wobble  = 0.06 * Math.sin(t * 0.4 + baseA * 3);
-      const r = R * (breathe + wobble);
-      return { x: Math.cos(baseA) * r, y: Math.sin(baseA) * r };
-    }
-
-    function clientToSvg(clientX, clientY) {
-      const r = svg.getBoundingClientRect();
-      return {
-        x: ((clientX - r.left) / r.width) * 400 - 200,
-        y: ((clientY - r.top)  / r.height) * 400 - 200,
-      };
-    }
-
-    function updateIndicators() {
-      for (const [id, el] of indicatorEls) {
-        if (!pointers.has(id)) { el.remove(); indicatorEls.delete(id); }
-      }
-      for (const [id, p] of pointers) {
-        if (id === 'demo') continue;
-        let el = indicatorEls.get(id);
-        if (!el) {
-          el = document.createElementNS(SVG_NS, 'circle');
-          el.setAttribute('r', '38');
-          el.setAttribute('fill', 'url(#touchGlow)');
-          el.setAttribute('pointer-events', 'none');
-          indicatorsGroup.appendChild(el);
-          indicatorEls.set(id, el);
-        }
-        el.setAttribute('cx', p.x.toFixed(1));
-        el.setAttribute('cy', p.y.toFixed(1));
-      }
-    }
-
-    function emitRipple(svgX, svgY) {
-      const c = document.createElementNS(SVG_NS, 'circle');
-      c.setAttribute('cx', svgX.toFixed(1));
-      c.setAttribute('cy', svgY.toFixed(1));
-      c.setAttribute('class', 'ripple-circle');
-      ripplesGroup.appendChild(c);
-      setTimeout(() => c.remove(), 1000);
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       2. PROJECTS + SATELLITES
-       ═══════════════════════════════════════════════════════════════ */
     const projects = JSON.parse(document.getElementById('projects-data').textContent);
+    const isMobile = Math.min(innerWidth, innerHeight) < 700;
 
-    const satellites = projects.map((proj, i) => {
-      const count = projects.length;
-      const baseAngle = -Math.PI / 2 + (i / count) * Math.PI * 2;
-      const baseRadius = 0.40; // fraction of half-wrap from center
-      return {
-        proj,
-        baseAngle,
-        baseRadius,
-        scale: 0,
-        targetScale: 0,
-        el: null,
-      };
+    /* ═══════════════ renderer / scene / camera ═══════════════ */
+    const canvas = document.getElementById('world');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+
+    const PAPER = new THREE.Color('#EFEBE0');
+    const scene = new THREE.Scene();
+    scene.background = PAPER;
+    scene.fog = new THREE.Fog(PAPER, 10, 26);
+
+    const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.1, 60);
+    const camBase = new THREE.Vector3(0, 3.0, 9.5);
+    camera.position.copy(camBase);
+    const lookAt = new THREE.Vector3(0, 0.8, 0);
+    camera.lookAt(lookAt);
+
+    addEventListener('resize', () => {
+      renderer.setSize(innerWidth, innerHeight);
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
     });
 
-    function buildSatellites() {
-      satellites.forEach((s, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'satellite';
-        btn.setAttribute('data-project-id', s.proj.id);
-        btn.setAttribute('aria-label', `Open project: ${s.proj.label}`);
-        btn.style.setProperty('--sat-color', s.proj.color);
-        btn.innerHTML = `
-          <span class="sat-orb" aria-hidden="true"></span>
-          <span class="sat-label">${escapeHtml(s.proj.label)}</span>
-        `;
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          openSheet(s.proj);
-        });
-        blobWrap.appendChild(btn);
-        s.el = btn;
+    /* ═══════════════ shared uniforms ═══════════════ */
+    const uTime = { value: 0 };
+    const uPointer = { value: new THREE.Vector3(999, 0, 999) }; // world-space on ground
+
+    /* ═══════════════ ground ═══════════════ */
+    const groundGeo = new THREE.CircleGeometry(22, 64);
+    groundGeo.rotateX(-Math.PI / 2);
+    {
+      // painterly vertex colors: green with brown patches
+      const pos = groundGeo.attributes.position;
+      const colors = new Float32Array(pos.count * 3);
+      const g1 = new THREE.Color('#6B9A4C'), g2 = new THREE.Color('#557F3D'), br = new THREE.Color('#7A6248');
+      const c = new THREE.Color();
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), z = pos.getZ(i);
+        const n = Math.sin(x * 0.35 + 1.7) * Math.cos(z * 0.42) + Math.sin(x * 0.13) * 0.6;
+        c.copy(g1).lerp(g2, Math.min(Math.max(n * 0.5 + 0.5, 0), 1));
+        if (n > 0.75) c.lerp(br, (n - 0.75) * 1.6);
+        colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+      }
+      groundGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    }
+    const ground = new THREE.Mesh(groundGeo, new THREE.MeshBasicMaterial({ vertexColors: true, fog: true }));
+    scene.add(ground);
+
+    /* ═══════════════ instanced grass ═══════════════ */
+    const BLADES = isMobile ? 14000 : 26000;
+    const bladeBase = new THREE.BufferGeometry();
+    bladeBase.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+      -0.035, 0, 0,   0.035, 0, 0,   0, 1, 0
+    ]), 3));
+    bladeBase.setAttribute('aY', new THREE.BufferAttribute(new Float32Array([0, 0, 1]), 1));
+
+    const grassGeo = new THREE.InstancedBufferGeometry();
+    grassGeo.index = null;
+    grassGeo.attributes.position = bladeBase.attributes.position;
+    grassGeo.attributes.aY = bladeBase.attributes.aY;
+    grassGeo.instanceCount = BLADES;
+
+    const offsets = new Float32Array(BLADES * 3);
+    const scales = new Float32Array(BLADES);
+    const hues = new Float32Array(BLADES);
+    const phases = new Float32Array(BLADES);
+    for (let i = 0; i < BLADES; i++) {
+      // scatter in an ellipse, denser near center
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random());
+      offsets[i * 3]     = Math.cos(a) * r * 13;
+      offsets[i * 3 + 1] = 0;
+      offsets[i * 3 + 2] = Math.sin(a) * r * 8 - 0.5;
+      scales[i] = 0.25 + Math.random() * 0.3;
+      hues[i]   = Math.random();
+      phases[i] = Math.random() * Math.PI * 2;
+    }
+    grassGeo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(offsets, 3));
+    grassGeo.setAttribute('aScale',  new THREE.InstancedBufferAttribute(scales, 1));
+    grassGeo.setAttribute('aHue',    new THREE.InstancedBufferAttribute(hues, 1));
+    grassGeo.setAttribute('aPhase',  new THREE.InstancedBufferAttribute(phases, 1));
+
+    const grassMat = new THREE.ShaderMaterial({
+      uniforms: { uTime, uPointer, fogColor: { value: PAPER }, fogNear: { value: 10 }, fogFar: { value: 26 } },
+      side: THREE.DoubleSide,
+      vertexShader: /* glsl */`
+        attribute vec3 aOffset;
+        attribute float aScale, aHue, aPhase, aY;
+        uniform float uTime;
+        uniform vec3 uPointer;
+        varying float vY, vHue, vFogDepth;
+        void main() {
+          vY = aY; vHue = aHue;
+          vec3 p = position * aScale;
+          p.y *= (1.0 + aScale);
+          // wind: bend grows with height squared
+          float sway = sin(uTime * 1.6 + aPhase + aOffset.x * 0.4) * 0.14
+                     + sin(uTime * 3.7 + aPhase * 2.0) * 0.04;
+          p.x += sway * aY * aY;
+          // pointer push: blades lean away from the visitor's touch
+          vec2 d = aOffset.xz - uPointer.xz;
+          float dist = length(d);
+          if (dist < 1.6) {
+            p.xz += normalize(d) * (1.0 - dist / 1.6) * 0.35 * aY;
+          }
+          vec4 mv = modelViewMatrix * vec4(p + aOffset, 1.0);
+          vFogDepth = -mv.z;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: /* glsl */`
+        varying float vY, vHue, vFogDepth;
+        uniform vec3 fogColor;
+        uniform float fogNear, fogFar;
+        void main() {
+          vec3 root = vec3(0.184, 0.325, 0.149);          // #2F5326
+          vec3 tipA = vec3(0.561, 0.710, 0.384);          // #8FB562
+          vec3 tipB = vec3(0.780, 0.882, 0.365);          // lighter, yellower
+          vec3 tip = mix(tipA, tipB, vHue);
+          vec3 col = mix(root, tip, vY);
+          float fogF = smoothstep(fogNear, fogFar, vFogDepth);
+          gl_FragColor = vec4(mix(col, fogColor, fogF), 1.0);
+        }
+      `,
+    });
+    const grass = new THREE.Mesh(grassGeo, grassMat);
+    grass.frustumCulled = false;
+    scene.add(grass);
+
+    /* ═══════════════ ramp-lit creature material ═══════════════ */
+    function rampMaterial(hex, doubleSide = false) {
+      const c = new THREE.Color(hex);
+      const shadow = c.clone().multiplyScalar(0.55).lerp(new THREE.Color('#2F5326'), 0.25);
+      return new THREE.ShaderMaterial({
+        side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
+        uniforms: {
+          uLit: { value: c },
+          uShadow: { value: shadow },
+          uRim: { value: new THREE.Color('#FFF6D8') },
+          fogColor: { value: PAPER }, fogNear: { value: 10 }, fogFar: { value: 26 },
+        },
+        vertexShader: /* glsl */`
+          varying vec3 vN, vV;
+          varying float vFogDepth;
+          void main() {
+            vN = normalize(normalMatrix * normal);
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            vV = normalize(-mv.xyz);
+            vFogDepth = -mv.z;
+            gl_Position = projectionMatrix * mv;
+          }
+        `,
+        fragmentShader: /* glsl */`
+          uniform vec3 uLit, uShadow, uRim, fogColor;
+          uniform float fogNear, fogFar;
+          varying vec3 vN, vV;
+          varying float vFogDepth;
+          void main() {
+            vec3 L = normalize(vec3(0.5, 0.9, 0.4));
+            float ndl = dot(vN, L) * 0.5 + 0.5;
+            vec3 col = mix(uShadow, uLit, smoothstep(0.25, 0.85, ndl));
+            float rim = pow(1.0 - max(dot(vN, vV), 0.0), 3.0);
+            col += uRim * rim * 0.35;
+            float fogF = smoothstep(fogNear, fogFar, vFogDepth);
+            gl_FragColor = vec4(mix(col, fogColor, fogF), 1.0);
+          }
+        `,
       });
     }
 
-    function spawnSatellites() {
-      if (satellitesOut) return;
-      satellitesOut = true;
-      satellites.forEach((s, i) => {
-        setTimeout(() => { s.targetScale = 1; }, 90 * i);
-      });
-      const hint = document.getElementById('label');
-      if (hint) hint.textContent = '· tap a bubble ·';
+    /* ═══════════════ creatures ═══════════════ */
+    function noise1(t, p) {
+      return Math.sin(t * 0.7 + p) * 0.5 + Math.sin(t * 1.7 + p * 2.1) * 0.35 + Math.sin(t * 3.1 + p * 0.7) * 0.15;
     }
 
-    function updateSatellites(t) {
-      for (const s of satellites) {
-        if (!s.el) continue;
-        s.scale += (s.targetScale - s.scale) * 0.18;
-        const angle = s.baseAngle + Math.sin(t * 0.2 + s.baseAngle) * 0.08 + t * 0.04;
-        const r = s.baseRadius + Math.sin(t * 0.5 + s.baseAngle * 2) * 0.018;
-        const x = 50 + Math.cos(angle) * r * 100;
-        const y = 50 + Math.sin(angle) * r * 100;
-        s.el.style.left = x.toFixed(2) + '%';
-        s.el.style.top  = y.toFixed(2) + '%';
-        s.el.style.transform = `translate(-50%, -50%) scale(${s.scale.toFixed(3)})`;
+    class Creature {
+      constructor(proj, index, count) {
+        this.proj = proj;
+        this.species = proj.species || 'jelly';
+        this.seed = index * 137.5;
+        this.group = new THREE.Group();
+        const fx = (index + 0.5) / count;
+        this.homeX = -3.2 + fx * 6.4;
+        this.homeZ = (index % 2 === 0) ? 1.4 : -0.3;
+        this.x = this.homeX; this.z = this.homeZ;
+        this.vx = 0; this.vz = 0;
+        this.heading = Math.random() * Math.PI * 2;
+        this.nearPointer = 0;
+        this.baseY = this.species === 'moth' ? 1.45 : this.species === 'jelly' ? 1.15 : 0.18;
+        this.build();
+        scene.add(this.group);
+      }
+
+      build() {
+        const mat = rampMaterial(this.proj.color);
+        this.mat = mat;
+        if (this.species === 'jelly') {
+          this.body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 20), mat);
+          this.body.scale.y = 0.8;
+          this.group.add(this.body);
+          // tentacles
+          this.tentacles = [];
+          const tMat = new THREE.LineBasicMaterial({ color: new THREE.Color(this.proj.color).multiplyScalar(0.8), fog: true });
+          for (let i = 0; i < 5; i++) {
+            const pts = Array.from({ length: 6 }, (_, k) => new THREE.Vector3(0, -k * 0.13, 0));
+            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), tMat);
+            line.position.set((i - 2) * 0.13, -0.25, 0);
+            this.group.add(line);
+            this.tentacles.push(line);
+          }
+        } else if (this.species === 'moth') {
+          this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.3, 4, 8), rampMaterial('#1C1A16'));
+          this.body.rotation.x = Math.PI / 2;
+          this.group.add(this.body);
+          this.wings = [];
+          const wingMat = rampMaterial(this.proj.color, true);
+          const wingGeo = new THREE.CircleGeometry(0.34, 20);
+          wingGeo.rotateX(-Math.PI / 2);
+          wingGeo.translate(0.3, 0, 0);
+          for (const side of [-1, 1]) {
+            const w = new THREE.Mesh(wingGeo, wingMat);
+            w.scale.x = side;
+            this.group.add(w);
+            this.wings.push(w);
+          }
+        } else {
+          this.body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 22, 18), mat);
+          this.body.scale.set(1.15, 0.72, 0.9);
+          this.group.add(this.body);
+          const shell = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 8, 20), rampMaterial('#B98A66'));
+          shell.position.set(0.05, 0.28, 0);
+          this.group.add(shell);
+        }
+        // invisible tap proxy (generous)
+        this.proxy = new THREE.Mesh(
+          new THREE.SphereGeometry(0.85, 8, 6),
+          new THREE.MeshBasicMaterial({ visible: false })
+        );
+        this.proxy.userData.creature = this;
+        this.group.add(this.proxy);
+      }
+
+      update(t, dt) {
+        const s = this.seed;
+        const speedBase = this.species === 'moth' ? 0.9 : this.species === 'jelly' ? 0.5 : 0.3;
+
+        this.heading += noise1(t * 0.4, s) * 0.8 * dt;
+        this.vx += (this.homeX - this.x) * 0.12 * dt;
+        this.vz += (this.homeZ - this.z) * 0.12 * dt;
+
+        // separation
+        for (const other of creatures) {
+          if (other === this) continue;
+          const dx = this.x - other.x, dz = this.z - other.z;
+          const d = Math.hypot(dx, dz) || 0.001;
+          if (d < 2.2) {
+            const push = (1 - d / 2.2) * 1.6;
+            this.vx += (dx / d) * push * dt;
+            this.vz += (dz / d) * push * dt;
+          }
+        }
+
+        // curiosity toward pointer on ground
+        const dp = Math.hypot(uPointer.value.x - this.x, uPointer.value.z - this.z);
+        const near = dp < 2.5 ? 1 - dp / 2.5 : 0;
+        this.nearPointer += (near - this.nearPointer) * (1 - Math.exp(-5 * dt));
+        const speed = speedBase * (1 - this.nearPointer * 0.6);
+        if (near > 0) {
+          this.vx += (uPointer.value.x - this.x) * 0.25 * near * dt;
+          this.vz += (uPointer.value.z - this.z) * 0.25 * near * dt;
+        }
+
+        this.vx += Math.cos(this.heading) * speed * dt;
+        this.vz += Math.sin(this.heading) * speed * dt;
+        this.vx *= Math.exp(-1.4 * dt);
+        this.vz *= Math.exp(-1.4 * dt);
+        this.x += this.vx;
+        this.z += this.vz;
+        // stay in the visible meadow band
+        this.x = Math.max(-4.2, Math.min(4.2, this.x));
+        this.z = Math.max(-2.2, Math.min(2.6, this.z));
+
+        // species motion
+        let y = this.baseY;
+        if (this.species === 'jelly') {
+          y += Math.sin(t * 1.1 + s) * 0.15;
+          const pulse = 1 + Math.sin(t * 1.8 + s) * 0.05 + this.nearPointer * 0.06;
+          this.body.scale.set(pulse, 0.8 * (2 - pulse), pulse);
+          this.tentacles.forEach((line, i) => {
+            line.rotation.z = Math.sin(t * 2.0 + i + s) * 0.25;
+          });
+        } else if (this.species === 'moth') {
+          y += Math.sin(t * 2.3 + s) * 0.25 + Math.sin(t * 0.7 + s * 2.0) * 0.15;
+          const flap = Math.sin(t * (reduce ? 2 : 14) + s) * 0.9;
+          this.wings[0].rotation.z =  flap * 0.55 + 0.15;
+          this.wings[1].rotation.z = -flap * 0.55 - 0.15;
+          this.group.rotation.y = -this.heading + Math.PI / 2;
+        } else {
+          const amble = Math.sin(t * 2.6 + s);
+          this.body.scale.set(1.15 + amble * 0.04, 0.72 - amble * 0.03, 0.9);
+        }
+
+        this.group.position.set(this.x, y, this.z);
       }
     }
 
-    /* ═══════════════════════════════════════════════════════════════
-       3. SHEET + CHAT
-       ═══════════════════════════════════════════════════════════════ */
+    const creatures = projects.map((p, i) => new Creature(p, i, projects.length));
+
+    /* ═══════════════ neon wireframe accents (murmur nod) ═══════════════ */
+    const wireMat = new THREE.LineBasicMaterial({ color: '#47E0D6', transparent: true, opacity: 0.85 });
+    const wires = [];
+    for (let i = 0; i < 2; i++) {
+      const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.45, 0.45, 0.45)), wireMat);
+      box.position.set(i === 0 ? -3.2 : 3.6, 1.5 + i * 0.5, -2.2);
+      scene.add(box);
+      wires.push(box);
+    }
+
+    /* ═══════════════ drifting motes ═══════════════ */
+    const MOTES = 90;
+    const motePos = new Float32Array(MOTES * 3);
+    for (let i = 0; i < MOTES; i++) {
+      motePos[i * 3] = (Math.random() - 0.5) * 20;
+      motePos[i * 3 + 1] = Math.random() * 3.5;
+      motePos[i * 3 + 2] = (Math.random() - 0.5) * 12;
+    }
+    const moteGeo = new THREE.BufferGeometry();
+    moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
+    const motes = new THREE.Points(moteGeo, new THREE.PointsMaterial({
+      color: '#FFF6D8', size: 0.045, transparent: true, opacity: 0.8, fog: true,
+    }));
+    scene.add(motes);
+
+    /* ═══════════════ pointer → world ═══════════════ */
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hit = new THREE.Vector3();
+    const pointerTarget = new THREE.Vector3(999, 0, 999);
+    const parallax = { x: 0, y: 0 };
+
+    function updatePointer(clientX, clientY) {
+      ndc.set((clientX / innerWidth) * 2 - 1, -(clientY / innerHeight) * 2 + 1);
+      raycaster.setFromCamera(ndc, camera);
+      if (raycaster.ray.intersectPlane(groundPlane, hit)) pointerTarget.copy(hit);
+      parallax.x = ndc.x;
+      parallax.y = ndc.y;
+    }
+    addEventListener('pointermove', e => updatePointer(e.clientX, e.clientY), { passive: true });
+
+    canvas.addEventListener('pointerdown', e => {
+      updatePointer(e.clientX, e.clientY);
+      raycaster.setFromCamera(ndc, camera);
+      const hits = raycaster.intersectObjects(creatures.map(c => c.proxy));
+      if (hits.length) openSheet(hits[0].object.userData.creature.proj);
+    });
+
+    /* ═══════════════ creature label buttons ═══════════════ */
+    const buttons = creatures.map(c => {
+      const b = document.createElement('button');
+      b.className = 'creature-btn';
+      b.style.setProperty('--dot', c.proj.color);
+      b.innerHTML = `<span class="dot"></span>${c.proj.label} · talk`;
+      b.setAttribute('aria-label', `Open project: ${c.proj.label}`);
+      b.addEventListener('click', () => openSheet(c.proj));
+      document.body.appendChild(b);
+      return b;
+    });
+    const _v = new THREE.Vector3();
+    function updateButtons() {
+      creatures.forEach((c, i) => {
+        _v.set(c.x, 0, c.z).project(camera);
+        const sx = Math.max(80, Math.min(innerWidth - 80, (_v.x * 0.5 + 0.5) * innerWidth));
+        const sy = (-_v.y * 0.5 + 0.5) * innerHeight;
+        const b = buttons[i];
+        b.style.left = sx + 'px';
+        b.style.top = (sy + 8) + 'px';
+        b.style.opacity = _v.z < 1 ? (0.75 + c.nearPointer * 0.25) : 0;
+      });
+    }
+
+    /* ═══════════════ ambient ticker ═══════════════ */
+    const tickerText = document.getElementById('tickerText');
+    const ticker = document.getElementById('ticker');
+    const verbs = {
+      jelly:   ['is drifting over the grass', 'is pulsing quietly', 'is hovering nearby'],
+      moth:    ['is circling the meadow', 'is dancing in the light', 'is fluttering past'],
+      crawler: ['is taking its time', 'is ambling through the blades', 'is leaving a trail'],
+    };
+    function tickerMessage() {
+      const c = creatures[Math.floor(Math.random() * creatures.length)];
+      const v = verbs[c.species] || verbs.jelly;
+      const verb = v[Math.floor(Math.random() * v.length)];
+      const topics = c.proj.topics || [];
+      const topic = topics[Math.floor(Math.random() * topics.length)];
+      return `${c.proj.label} ${verb} · ask it about ${topic ? topic.label : 'itself'}`;
+    }
+    setInterval(() => {
+      ticker.classList.add('swap');
+      setTimeout(() => {
+        tickerText.textContent = tickerMessage();
+        ticker.classList.remove('swap');
+      }, 500);
+    }, 5000);
+    setTimeout(() => { tickerText.textContent = tickerMessage(); }, 2200);
+
+    /* ═══════════════ main loop ═══════════════ */
+    let last = performance.now();
+    let running = true;
+    let revealed = false;
+
+    function frame(now) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      if (!reduce) uTime.value = now / 1000;
+      const t = uTime.value;
+
+      // eased world pointer (feel) — target updates instantly (responsiveness)
+      uPointer.value.lerp(pointerTarget, 1 - Math.exp(-8 * dt));
+
+      // camera parallax, damped
+      camera.position.x += (camBase.x + parallax.x * 0.6 - camera.position.x) * (1 - Math.exp(-3 * dt));
+      camera.position.y += (camBase.y - parallax.y * 0.3 - camera.position.y) * (1 - Math.exp(-3 * dt));
+      camera.lookAt(lookAt);
+
+      for (const c of creatures) c.update(t, dt);
+
+      wires.forEach((w, i) => {
+        w.rotation.x = t * 0.3 * (i ? 1 : -1);
+        w.rotation.y = t * 0.4;
+        w.position.y += Math.sin(t * 0.8 + i * 2) * 0.0015;
+      });
+
+      motes.rotation.y = t * 0.01;
+
+      renderer.render(scene, camera);
+      updateButtons();
+
+      if (!revealed) {
+        revealed = true;
+        canvas.classList.add('ready');
+      }
+      if (running && !reduce) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    if (reduce) {
+      uTime.value = 4;
+      setTimeout(() => frame(performance.now()), 100);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      running = !document.hidden;
+      if (running && !reduce) { last = performance.now(); requestAnimationFrame(frame); }
+    });
+
+    /* ═══════════════ sheet + chat ═══════════════ */
     const sheet = document.getElementById('sheet');
     const backdrop = document.getElementById('backdrop');
     const sheetId = document.getElementById('sheetId');
     const sheetTitle = document.getElementById('sheetTitle');
+    const sheetRole = document.getElementById('sheetRole');
     const sheetSummary = document.getElementById('sheetSummary');
     const sheetHero = document.getElementById('sheetHero');
     const sheetClose = document.getElementById('sheetClose');
@@ -761,25 +1058,27 @@
 
     let activeProject = null;
     let askedTopicIds = new Set();
-    const conversations = new Map(); // proj.id -> {messages, asked: Set}
+    let lastFocused = null;
+    const conversations = new Map();
 
     function openSheet(proj) {
       activeProject = proj;
+      lastFocused = document.activeElement;
       askedTopicIds = (conversations.get(proj.id)?.asked) || new Set();
 
-      sheetId.textContent = proj.id + ' · ' + (proj.label || 'project');
-      sheetTitle.textContent = proj.label || 'project';
+      sheetId.textContent = proj.id + ' · ' + proj.label;
+      sheetTitle.textContent = proj.label;
+      sheetRole.textContent = proj.role || '';
       sheetSummary.textContent = proj.summary || '';
       sheetHero.style.setProperty('--hero-color', proj.color || 'var(--lilac)');
 
-      // restore or initialize conversation
-      const existing = conversations.get(proj.id);
       conv.innerHTML = '';
+      const existing = conversations.get(proj.id);
       if (existing && existing.messages.length) {
         existing.messages.forEach(m => appendMsg(m.role, m.text, false));
       } else {
-        appendMsg('intro', 'ask anything about this project. or pick a topic below.', false);
-        conversations.set(proj.id, { messages: [{ role: 'intro', text: 'ask anything about this project. or pick a topic below.' }], asked: new Set() });
+        appendMsg('intro', 'ask anything about this project — or pick a topic.', false);
+        conversations.set(proj.id, { messages: [{ role: 'intro', text: 'ask anything about this project — or pick a topic.' }], asked: new Set() });
         askedTopicIds = conversations.get(proj.id).asked;
       }
       renderChips(suggestedTopics(proj));
@@ -788,7 +1087,7 @@
       backdrop.classList.add('open');
       sheet.classList.add('open');
       backdrop.setAttribute('aria-hidden', 'false');
-      setTimeout(() => composerInput.focus({ preventScroll: true }), 350);
+      setTimeout(() => sheet.focus({ preventScroll: true }), 380);
     }
 
     function closeSheet() {
@@ -796,10 +1095,21 @@
       backdrop.classList.remove('open');
       backdrop.setAttribute('aria-hidden', 'true');
       activeProject = null;
+      if (lastFocused && lastFocused.focus) lastFocused.focus({ preventScroll: true });
     }
     sheetClose.addEventListener('click', closeSheet);
     backdrop.addEventListener('click', closeSheet);
-    addEventListener('keydown', e => { if (e.key === 'Escape' && sheet.classList.contains('open')) closeSheet(); });
+    addEventListener('keydown', e => {
+      if (!sheet.classList.contains('open')) return;
+      if (e.key === 'Escape') { closeSheet(); return; }
+      if (e.key === 'Tab') {
+        const focusables = sheet.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
+        if (!focusables.length) return;
+        const first = focusables[0], lastF = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); lastF.focus(); }
+        else if (!e.shiftKey && document.activeElement === lastF) { e.preventDefault(); first.focus(); }
+      }
+    });
 
     function appendMsg(role, text, save = true) {
       const li = document.createElement('li');
@@ -807,10 +1117,18 @@
       li.textContent = text;
       conv.appendChild(li);
       conv.scrollTop = conv.scrollHeight;
-      if (save && activeProject) {
-        const c = conversations.get(activeProject.id);
-        c.messages.push({ role, text });
-      }
+      if (save && activeProject) conversations.get(activeProject.id).messages.push({ role, text });
+      return li;
+    }
+
+    function showTyping() {
+      const li = document.createElement('li');
+      li.className = 'msg typing';
+      li.innerHTML = '<i></i><i></i><i></i>';
+      li.setAttribute('aria-hidden', 'true');
+      conv.appendChild(li);
+      conv.scrollTop = conv.scrollHeight;
+      return li;
     }
 
     function suggestedTopics(proj, fromTopic = null) {
@@ -821,10 +1139,8 @@
       } else {
         pool = topics.slice();
       }
-      // prefer unasked first
       const unasked = pool.filter(t => !askedTopicIds.has(t.id));
-      const result = (unasked.length ? unasked : pool).slice(0, 5);
-      return result;
+      return (unasked.length ? unasked : pool).slice(0, 5);
     }
 
     function renderChips(topics) {
@@ -837,32 +1153,28 @@
         b.addEventListener('click', () => askTopic(t));
         chipsEl.appendChild(b);
       });
-      if (topics.length === 0) {
-        const note = document.createElement('span');
-        note.className = 'sheet-id';
-        note.textContent = 'no more topics — try typing your own question';
-        chipsEl.appendChild(note);
-      }
+    }
+
+    function reply(topic) {
+      const typing = showTyping();
+      setTimeout(() => {
+        typing.remove();
+        appendMsg('bot', topic.answer);
+        renderChips(suggestedTopics(activeProject, topic));
+      }, 550 + Math.random() * 350);
     }
 
     function askTopic(topic) {
       if (!activeProject) return;
       appendMsg('user', topic.label);
       askedTopicIds.add(topic.id);
-      conversations.get(activeProject.id).asked = askedTopicIds;
-      setTimeout(() => {
-        appendMsg('bot', topic.answer);
-        renderChips(suggestedTopics(activeProject, topic));
-      }, 350);
+      reply(topic);
     }
 
-    /* ── answer-lookup function. Swap this for a real LLM later. ── */
+    /* keyword matcher — swap for a real LLM endpoint later */
     function findBestTopic(query, proj) {
-      const tokens = (query || '').toLowerCase()
-        .replace(/[^\w\s]/g, ' ')
-        .split(/\s+/)
-        .filter(w => w.length > 2);
-      if (tokens.length === 0) return null;
+      const tokens = (query || '').toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+      if (!tokens.length) return null;
       let best = null, bestScore = 0;
       for (const t of proj.topics) {
         const target = (t.label + ' ' + (t.answer || '')).toLowerCase();
@@ -879,148 +1191,19 @@
       composerInput.value = '';
       appendMsg('user', q);
       const match = findBestTopic(q, activeProject);
+      const typing = showTyping();
       setTimeout(() => {
+        typing.remove();
         if (match) {
           askedTopicIds.add(match.id);
-          conversations.get(activeProject.id).asked = askedTopicIds;
           appendMsg('bot', match.answer);
           renderChips(suggestedTopics(activeProject, match));
         } else {
           appendMsg('bot', "I don't have an answer for that yet — try one of these:");
           renderChips(suggestedTopics(activeProject));
         }
-      }, 380);
+      }, 600 + Math.random() * 400);
     });
-
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, c => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      })[c]);
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       4. MAIN LOOP
-       ═══════════════════════════════════════════════════════════════ */
-    let t0 = performance.now();
-    let hue = 0, hueAccum = 0;
-
-    function frame(now) {
-      const t = (now - t0) / 1000;
-      const dtMs = 16;
-
-      hueAccum += (engaged ? 0.045 : 0.008) * dtMs;
-      if (hueAccum >= 1) {
-        hue = (hue + Math.floor(hueAccum)) % 360;
-        hueAccum -= Math.floor(hueAccum);
-        document.documentElement.style.setProperty('--hue', hue + 'deg');
-      }
-
-      const touches = [];
-      for (const p of pointers.values()) touches.push(p);
-
-      for (let i = 0; i < N; i++) {
-        const target = ambientRest(i, t);
-        const p = cur[i];
-        const v = vel[i];
-        v.vx += (target.x - p.x) * TENSION;
-        v.vy += (target.y - p.y) * TENSION;
-        const pl = cur[(i - 1 + N) % N];
-        const pr = cur[(i + 1) % N];
-        v.vx += ((pl.x + pr.x) * 0.5 - p.x) * NEIGH_PULL;
-        v.vy += ((pl.y + pr.y) * 0.5 - p.y) * NEIGH_PULL;
-        for (const t2 of touches) {
-          const dx = p.x - t2.x;
-          const dy = p.y - t2.y;
-          const dist = Math.hypot(dx, dy) || 0.001;
-          if (dist < TOUCH_RADIUS) {
-            const f = (1 - dist / TOUCH_RADIUS) * TOUCH_PUSH;
-            v.vx += (dx / dist) * f;
-            v.vy += (dy / dist) * f;
-          }
-        }
-        v.vx *= DAMPING; v.vy *= DAMPING;
-        p.x += v.vx; p.y += v.vy;
-      }
-
-      path.setAttribute('d', buildPath(cur));
-      updateIndicators();
-      updateSatellites(t);
-      if (!reduce) requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-
-    /* ═══════════════════════════════════════════════════════════════
-       5. POINTER EVENTS ON BLOB
-       ═══════════════════════════════════════════════════════════════ */
-    function setEngaged() {
-      if (engaged) return;
-      engaged = true;
-      svg.classList.add('engaged');
-      stage.classList.add('engaged');
-    }
-
-    svg.addEventListener('pointerdown', e => {
-      svg.setPointerCapture(e.pointerId);
-      const pt = clientToSvg(e.clientX, e.clientY);
-      pointers.set(e.pointerId, pt);
-      emitRipple(pt.x, pt.y);
-      setEngaged();
-      spawnSatellites();
-    });
-
-    svg.addEventListener('pointermove', e => {
-      if (pointers.has(e.pointerId)) {
-        pointers.set(e.pointerId, clientToSvg(e.clientX, e.clientY));
-      }
-    });
-
-    function endPointer(e) {
-      pointers.delete(e.pointerId);
-      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
-        try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
-      }
-    }
-    svg.addEventListener('pointerup', endPointer);
-    svg.addEventListener('pointercancel', endPointer);
-    svg.addEventListener('pointerleave', endPointer);
-
-    if (matchMedia('(hover: hover)').matches) {
-      svg.addEventListener('pointermove', e => {
-        if (e.pointerType === 'mouse' && !pointers.has(e.pointerId)) {
-          pointers.set('hover', clientToSvg(e.clientX, e.clientY));
-        }
-      });
-      svg.addEventListener('pointerleave', () => pointers.delete('hover'));
-    }
-
-    /* ═══════════════════════════════════════════════════════════════
-       6. INITIAL SETUP
-       ═══════════════════════════════════════════════════════════════ */
-    buildSatellites();
-
-    // self-demo: brief deform on load so the user immediately sees interactivity
-    function runDemo() {
-      if (reduce || engaged) return;
-      const start = performance.now() + 700;
-      const duration = 1800;
-      function step(now) {
-        if (engaged) { pointers.delete('demo'); return; }
-        if (now < start) { requestAnimationFrame(step); return; }
-        const t = (now - start) / duration;
-        if (t >= 1) {
-          pointers.delete('demo');
-          emitRipple(0, 0);
-          return;
-        }
-        const ease = t * t * (3 - 2 * t);
-        const angle = ease * Math.PI * 1.8 - Math.PI * 0.4;
-        const radius = 85 + Math.sin(ease * Math.PI) * 30;
-        pointers.set('demo', { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius });
-        requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }
-    runDemo();
   </script>
 </body>
 </html>
