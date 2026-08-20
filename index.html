@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#EFEBE0" />
+  <meta name="theme-color" content="#0D0D0B" />
   <title>melanie bossert</title>
-  <meta name="description" content="An alpine ecosystem of projects. Each creature is a piece of work — tap one and ask it anything." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 13 L6 4 L9 9 L11 6 L15 13 Z' fill='%235C7A54'/%3E%3C/svg%3E" />
+  <meta name="description" content="A simulated alpine plot. Each agent is a project — tap one and ask it anything." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1 13 L6 4 L9 9 L11 6 L15 13 Z' fill='%23CFE8A9'/%3E%3C/svg%3E" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,15 +14,17 @@
 
   <style>
     :root {
-      --paper: #EFEBE0;
+      --void: #0D0D0B;
+      --panel: rgba(20, 20, 17, 0.82);
+      --panel-line: rgba(207, 232, 169, 0.16);
+      --cream: #EFEBE0;
       --ink: #1C1A16;
-      --mute: #6E6A5E;
-      --pine: #3E5C46;
-      --meadow: #5C7A54;
-      --lake: #5FB3AE;
-      --granite: #8B8680;
-      --snow: #F4F3EE;
-      --sun: #E8B94C;
+      --mute-d: #8B877B;
+      --green: #CFE8A9;
+      --pink: #FF4FA3;
+      --amber: #F0A63D;
+      --teal: #47E0D6;
+      --red: #E84A33;
     }
 
     *, *::before, *::after { box-sizing: border-box; }
@@ -33,8 +35,8 @@
       min-height: 100dvh;
       min-height: 100vh;
       font-family: 'Inter Tight', system-ui, -apple-system, sans-serif;
-      color: var(--ink);
-      background: var(--paper);
+      color: var(--cream);
+      background: var(--void);
       overflow: hidden;
       overscroll-behavior: none;
       -webkit-font-smoothing: antialiased;
@@ -48,7 +50,7 @@
       height: 100%;
       touch-action: none;
       opacity: 0;
-      transition: opacity 1.2s ease;
+      transition: opacity 1.4s ease;
     }
     #world.ready { opacity: 1; }
 
@@ -85,7 +87,7 @@
       font-family: 'Instrument Serif', serif;
       font-style: italic;
       font-size: 1.05rem;
-      color: var(--ink);
+      color: var(--cream);
       letter-spacing: -0.01em;
       white-space: nowrap;
     }
@@ -93,23 +95,24 @@
       display: inline-block;
       width: 0.4rem; height: 0.4rem;
       border-radius: 50%;
-      background: var(--ink);
+      background: var(--green);
       margin: 0 0.5rem 0.1rem;
       vertical-align: middle;
     }
     .role-line {
       font-size: 0.78rem;
-      color: var(--mute);
+      color: var(--mute-d);
       text-align: right;
     }
 
+    /* ─── ticker: pale green chip, murmur-style ─── */
     .ticker {
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
       font-size: 0.7rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--paper);
-      background: var(--ink);
+      color: var(--ink);
+      background: var(--green);
       border-radius: 999px;
       padding: 0.5rem 1rem;
       display: inline-flex;
@@ -120,12 +123,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       transition: opacity 0.5s ease;
-      box-shadow: 0 4px 18px rgba(28, 26, 22, 0.25);
+      box-shadow: 0 4px 20px rgba(207, 232, 169, 0.18);
     }
     .ticker .eye {
       width: 0.45rem; height: 0.45rem;
       border-radius: 50%;
-      background: var(--sun);
+      background: var(--ink);
       flex: 0 0 auto;
       animation: tickerPulse 2.2s ease-in-out infinite;
     }
@@ -135,6 +138,36 @@
     }
     .ticker.swap { opacity: 0; }
 
+    .ticker-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      max-width: 94vw;
+    }
+    .sound-chip {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--cream);
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: 999px;
+      padding: 0.5rem 0.85rem;
+      min-height: 44px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s ease, color 0.2s ease;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+    .sound-chip[aria-pressed="true"] {
+      background: var(--green);
+      color: var(--ink);
+      border-color: var(--green);
+    }
+    .sound-chip:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+
     .bottom {
       display: flex;
       justify-content: flex-end;
@@ -143,11 +176,12 @@
     .contact {
       font-size: 0.85rem;
       font-weight: 500;
-      color: var(--ink);
+      color: var(--cream);
       text-decoration: none;
       padding: 0.6rem 0.9rem;
       border-radius: 999px;
-      background: rgba(239, 235, 224, 0.75);
+      background: rgba(20, 20, 17, 0.7);
+      border: 1px solid var(--panel-line);
       -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
       display: inline-flex;
@@ -155,23 +189,124 @@
       gap: 0.25rem;
       transition: background 0.18s ease;
     }
-    .contact:hover, .contact:focus-visible { background: rgba(239, 235, 224, 0.95); }
+    .contact:hover, .contact:focus-visible { background: rgba(40, 40, 34, 0.9); }
     .contact .arrow { transition: transform 0.18s ease; }
     .contact:hover .arrow, .contact:focus-visible .arrow { transform: translate(2px, -2px); }
-    .contact:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    .contact:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 
+    /* ─── instrument panels (desktop) ─── */
+    .panel {
+      position: fixed;
+      z-index: 2;
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 0.64rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--cream);
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      display: none;
+      max-width: 250px;
+    }
+    @media (min-width: 1024px) {
+      .panel { display: block; }
+    }
+    .panel h2 {
+      margin: 0 0 0.7rem;
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .panel h2::before {
+      content: "";
+      width: 0.5rem; height: 0.5rem;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    #statsPanel { left: max(1.5rem, env(safe-area-inset-left)); top: 6rem; min-width: 210px; }
+    #howPanel   { left: max(1.5rem, env(safe-area-inset-left)); bottom: 5.5rem; }
+    #logPanel   { right: max(1.5rem, env(safe-area-inset-right)); top: 6rem; width: 260px; max-height: min(52vh, 480px); overflow: hidden; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin: 0.35rem 0;
+      color: var(--mute-d);
+    }
+    .stat-row b { color: var(--cream); font-weight: 500; }
+    .bar {
+      flex: 1 1 auto;
+      height: 3px;
+      background: rgba(207, 232, 169, 0.15);
+      border-radius: 99px;
+      overflow: hidden;
+      max-width: 90px;
+    }
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 30%;
+      background: var(--green);
+      border-radius: 99px;
+      transition: width 0.8s ease;
+    }
+
+    #howPanel p {
+      margin: 0 0 0.55rem;
+      line-height: 1.55;
+      color: var(--mute-d);
+      text-transform: none;
+      letter-spacing: 0.03em;
+    }
+    #howPanel p b { color: var(--cream); font-weight: 500; }
+    #howPanel .legend { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.6rem; }
+    #howPanel .legend span { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--mute-d); text-transform: none; }
+    #howPanel .legend i { width: 0.5rem; height: 0.5rem; border-radius: 2px; flex: 0 0 auto; }
+
+    #logList {
+      list-style: none;
+      margin: 0; padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #logList li {
+      display: grid;
+      grid-template-columns: 2.6rem 1fr;
+      gap: 0.5rem;
+      color: var(--cream);
+      line-height: 1.45;
+      animation: logIn 0.4s ease both;
+    }
+    #logList li .t { color: var(--mute-d); }
+    @keyframes logIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── creature labels ─── */
     .creature-btn {
       position: fixed;
       transform: translate(-50%, 0);
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--paper);
-      background: var(--ink);
-      border: 0;
+      color: var(--cream);
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
       border-radius: 999px;
-      padding: 0.5rem 0.9rem;
+      padding: 0.5rem 0.85rem;
       cursor: pointer;
       z-index: 3;
       transition: opacity 0.4s ease, background 0.18s ease;
@@ -180,25 +315,27 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      box-shadow: 0 4px 14px rgba(28, 26, 22, 0.25);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
     }
     .creature-btn .dot {
-      width: 0.4rem; height: 0.4rem;
+      width: 0.42rem; height: 0.42rem;
       border-radius: 50%;
-      background: var(--dot, var(--sun));
+      background: var(--dot, var(--green));
       flex: 0 0 auto;
     }
-    .creature-btn:hover { background: #2E2B25; }
+    .creature-btn:hover { background: rgba(40, 40, 34, 0.95); }
     .creature-btn:focus-visible {
-      outline: 2px solid var(--ink);
+      outline: 2px solid var(--green);
       outline-offset: 3px;
       opacity: 1 !important;
     }
 
+    /* ─── sheet (stays light — the document that opens from the dark world) ─── */
     .backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(28, 26, 22, 0.35);
+      background: rgba(6, 6, 5, 0.55);
       -webkit-backdrop-filter: blur(8px);
       backdrop-filter: blur(8px);
       opacity: 0;
@@ -213,12 +350,13 @@
       left: 0; right: 0; bottom: 0;
       height: 92dvh;
       max-height: 92dvh;
-      background: var(--paper);
+      background: var(--cream);
+      color: var(--ink);
       border-radius: 24px 24px 0 0;
       transform: translateY(102%);
       transition: transform 0.45s cubic-bezier(.2,.85,.2,1);
       z-index: 10;
-      box-shadow: 0 -20px 60px rgba(28,26,22,0.3);
+      box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
       padding: 1rem 1.25rem max(1rem, env(safe-area-inset-bottom));
@@ -244,7 +382,7 @@
       font-family: ui-monospace, 'SF Mono', Menlo, monospace;
       font-size: 0.7rem;
       letter-spacing: 0.08em;
-      color: var(--mute);
+      color: #6E6A5E;
       text-transform: uppercase;
     }
     .sheet-close {
@@ -266,7 +404,7 @@
       width: 100%;
       aspect-ratio: 21 / 9;
       border-radius: 16px;
-      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.5), transparent 60%), var(--hero-color, var(--meadow));
+      background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.45), transparent 60%), var(--hero-color, var(--green));
       flex: 0 0 auto;
       overflow: hidden;
     }
@@ -285,13 +423,13 @@
       font-size: 0.72rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--pine);
+      color: #4C6A46;
       margin: 0 0 0.5rem;
       flex: 0 0 auto;
     }
     .sheet-summary {
       font-size: 0.95rem;
-      color: var(--mute);
+      color: #6E6A5E;
       margin: 0 0 0.85rem;
       max-width: 60ch;
       flex: 0 0 auto;
@@ -333,13 +471,13 @@
     }
     .msg.user {
       background: var(--ink);
-      color: var(--paper);
+      color: var(--cream);
       align-self: flex-end;
       border-bottom-right-radius: 6px;
     }
     .msg.intro {
       background: transparent;
-      color: var(--mute);
+      color: #6E6A5E;
       padding: 0.25rem 0.3rem;
       font-size: 0.85rem;
       font-style: italic;
@@ -356,7 +494,7 @@
     .msg.typing i {
       width: 0.35rem; height: 0.35rem;
       border-radius: 50%;
-      background: var(--mute);
+      background: #6E6A5E;
       animation: typing 1.1s ease-in-out infinite;
     }
     .msg.typing i:nth-child(2) { animation-delay: 0.15s; }
@@ -414,13 +552,13 @@
       outline: none;
       min-width: 0;
     }
-    .composer input::placeholder { color: var(--mute); }
+    .composer input::placeholder { color: #6E6A5E; }
     .composer button {
       width: 44px; height: 44px;
       border-radius: 50%;
       border: 0;
       background: var(--ink);
-      color: var(--paper);
+      color: var(--cream);
       font-size: 1rem;
       cursor: pointer;
       display: grid; place-items: center;
@@ -455,6 +593,7 @@
     @media (prefers-reduced-motion: reduce) {
       .ticker .eye { animation: none; }
       .msg.typing i { animation: none; }
+      #logList li { animation: none; }
       .sheet, .backdrop, .creature-btn, #world { transition: none !important; }
     }
 
@@ -464,8 +603,9 @@
     }
     .top    { animation: rise 0.7s 0.15s cubic-bezier(.2,.8,.2,1) both; }
     .bottom { animation: rise 0.7s 0.45s cubic-bezier(.2,.8,.2,1) both; }
+    .panel  { animation: rise 0.7s 0.6s  cubic-bezier(.2,.8,.2,1) both; }
     @media (prefers-reduced-motion: reduce) {
-      .top, .bottom { animation: none; }
+      .top, .bottom, .panel { animation: none; }
     }
 
     .sr-only {
@@ -488,7 +628,10 @@
         <span class="mark"><em>m.</em><span class="sep"></span><em>bossert</em></span>
         <span class="role-line">ai product designer · switzerland</span>
       </div>
-      <p class="ticker" id="ticker"><span class="eye"></span><span id="tickerText">the valley is waking up…</span></p>
+      <div class="ticker-row">
+        <p class="ticker" id="ticker"><span class="eye"></span><span id="tickerText">the plot is waking up…</span></p>
+        <button class="sound-chip" id="soundBtn" aria-pressed="false" aria-label="Toggle sound">sound · off</button>
+      </div>
     </header>
 
     <div></div>
@@ -499,6 +642,31 @@
       </a>
     </footer>
   </div>
+
+  <!-- instrument panels (desktop) -->
+  <section class="panel" id="statsPanel" aria-label="Ecosystem state">
+    <h2>alpine plot</h2>
+    <div class="stat-row"><span>time</span><b id="statTime">–</b></div>
+    <div class="stat-row"><span>weather</span><b id="statWeather">dry still</b></div>
+    <div class="stat-row"><span>temp</span><b id="statTemp">14°C</b></div>
+    <div class="stat-row"><span>activity</span><span class="bar"><i id="statActivity"></i></span></div>
+  </section>
+
+  <section class="panel" id="howPanel" aria-label="How it works">
+    <h2>how it works</h2>
+    <p>What you see is a small simulated alpine plot.</p>
+    <p>Each agent is a <b>real project</b> with its own rules and rhythms. Tap one to open it — then <b>ask it anything</b>.</p>
+    <div class="legend">
+      <span><i style="background:#FF4FA3"></i>ibex — gemini · deepmind</span>
+      <span><i style="background:#F0A63D"></i>marmot — side quests</span>
+      <span><i style="background:#47E0D6"></i>choughs — ai slam &amp; events</span>
+    </div>
+  </section>
+
+  <section class="panel" id="logPanel" aria-label="Events log">
+    <h2>events log</h2>
+    <ol id="logList"></ol>
+  </section>
 
   <div class="backdrop" id="backdrop" aria-hidden="true"></div>
   <aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
@@ -523,19 +691,14 @@
     </section>
   </aside>
 
-  <!-- ─── project data (EDIT ME — placeholder answers marked ✏️) ──────────
-       species: "ibex" (the flagship — Gemini work)
-                "marmot" (side explorations — pops up to whistle)
-                "flock"  (alpine choughs — community & events)
-       Keep answers NDA-safe: shipped/public work only, no internal metrics.
-       ──────────────────────────────────────────────────────────────────── -->
+  <!-- ─── project data (EDIT ME — ✏️ marks placeholder answers) ─── -->
   <script type="application/json" id="projects-data">
   [
     {
       "id": "gemini",
       "label": "gemini · deepmind",
       "species": "ibex",
-      "color": "#B08D5E",
+      "color": "#FF4FA3",
       "role": "role — staff ai product designer",
       "summary": "AI product design at Gemini scale — shaping how people converse with an AI. ✏️ Replace with one NDA-safe sentence about your focus area.",
       "topics": [
@@ -550,7 +713,7 @@
       "id": "side",
       "label": "side quests",
       "species": "marmot",
-      "color": "#A98A6A",
+      "color": "#F0A63D",
       "role": "role — maker & explorer",
       "summary": "Exploratory work outside the day job — prototypes, experiments, things made for the joy of it. ✏️ Replace with your real side projects.",
       "topics": [
@@ -564,7 +727,7 @@
       "id": "events",
       "label": "ai slam & events",
       "species": "flock",
-      "color": "#4A4A4A",
+      "color": "#47E0D6",
       "role": "role — organizer & host",
       "summary": "Community events at the intersection of AI and creativity — like AI Slam, a stage for people who write. ✏️ Add dates, places, what happens there.",
       "topics": [
@@ -590,16 +753,15 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
 
-    const PAPER = new THREE.Color('#EFEBE0');
-    const FOG_NEAR = 14, FOG_FAR = 46;
+    const VOID = new THREE.Color('#0D0D0B');
     const scene = new THREE.Scene();
-    scene.background = PAPER;
-    scene.fog = new THREE.Fog(PAPER, FOG_NEAR, FOG_FAR);
+    scene.background = VOID;
 
-    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 90);
-    const camBase = new THREE.Vector3(0, 3.4, 10.5);
-    camera.position.copy(camBase);
-    const lookAt = new THREE.Vector3(0, 1.8, -6);
+    const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 80);
+    const CAM_R = isMobile ? 17 : 14.5;
+    const CAM_H = isMobile ? 8.5 : 7.0;
+    camera.position.set(0, CAM_H, CAM_R);
+    const lookAt = new THREE.Vector3(0, 0.4, 0);
     camera.lookAt(lookAt);
 
     addEventListener('resize', () => {
@@ -608,110 +770,146 @@
       camera.updateProjectionMatrix();
     });
 
+    // spotlit diorama lighting
+    scene.add(new THREE.AmbientLight('#DDE6D0', 0.4));
+    const spot = new THREE.SpotLight('#FFF6D8', 900, 60, 0.55, 0.55);
+    spot.position.set(2, 20, 6);
+    spot.target.position.set(0, 0, 0);
+    scene.add(spot, spot.target);
+
     const uTime = { value: 0 };
     const uPointer = { value: new THREE.Vector3(999, 0, 999) };
 
-    /* ═══════════════ alpine terrain ═══════════════ */
-    function terrainHeight(x, z) {
-      // flat valley in front; ridged peaks rising behind and at the far sides
-      const behind = Math.max(0, -(z + 5)) / 14;
-      const sides  = Math.max(0, Math.abs(x) - 15) / 12;
-      const amp = Math.min(behind * behind * 9 + sides * sides * 5, 13);
-      if (amp <= 0.001) return 0;
-      const r1 = Math.abs(Math.sin(x * 0.16 + 1.7) + Math.cos(z * 0.13 - 0.6));
-      const r2 = Math.abs(Math.sin(x * 0.07 - 2.1) * 1.4 + Math.cos(z * 0.05 + 1.0));
-      return amp * (r1 * 0.6 + r2 * 0.9) * 0.5;
+    /* ═══════════════ the floating alpine plot ═══════════════ */
+    const ISLAND_R = 8.2;
+    const POND = { x: 2.6, z: 1.6, rx: 1.7, rz: 1.15 };
+    function islandHeight(x, z) {
+      const r = Math.hypot(x, z);
+      if (r > ISLAND_R) return 0;
+      // gentle meadow undulation
+      let h = Math.sin(x * 0.55 + 1.2) * Math.cos(z * 0.6 - 0.4) * 0.18
+            + Math.sin(x * 0.22 - 0.7) * 0.12;
+      // one rocky rise toward the back — the "peak"
+      const px = x + 2.5, pz = z + 4.4;
+      const pd = Math.hypot(px, pz);
+      if (pd < 3.6) {
+        const f = (1 - pd / 3.6);
+        h += f * f * 2.6 * (1 + Math.abs(Math.sin(x * 1.3 + z)) * 0.4);
+      }
+      // flatten into a shallow basin under the pond
+      const pdx = (x - POND.x) / (POND.rx * 1.5), pdz = (z - POND.z) / (POND.rz * 1.5);
+      const pondD = Math.sqrt(pdx * pdx + pdz * pdz);
+      if (pondD < 1) h = h * pondD - 0.1 * (1 - pondD);
+      // soften to the rim
+      const rim = Math.min(1, Math.max(0, (ISLAND_R - r) / 1.6));
+      return h * rim;
     }
 
-    const terrainGeo = new THREE.PlaneGeometry(96, 64, 150, 100);
-    terrainGeo.rotateX(-Math.PI / 2);
-    terrainGeo.translate(0, 0, -14); // z ∈ [-46, 18]
+    // terrain top — subdivided disc (CircleGeometry has no interior vertices to displace)
+    function discGeometry(radius, rings, segments) {
+      const positions = [], indices = [];
+      for (let r = 0; r <= rings; r++) {
+        const rad = (r / rings) * radius;
+        for (let s = 0; s <= segments; s++) {
+          const a = (s / segments) * Math.PI * 2;
+          positions.push(Math.cos(a) * rad, 0, Math.sin(a) * rad);
+        }
+      }
+      for (let r = 0; r < rings; r++) {
+        for (let s = 0; s < segments; s++) {
+          const a = r * (segments + 1) + s;
+          const b = a + segments + 1;
+          indices.push(a, a + 1, b, b, a + 1, b + 1);
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setIndex(indices);
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      return geo;
+    }
+    const terrainGeo = discGeometry(ISLAND_R, 42, 84);
     {
       const pos = terrainGeo.attributes.position;
       const colors = new Float32Array(pos.count * 3);
-      const cMeadow = new THREE.Color('#5C7A54');
-      const cMeadow2 = new THREE.Color('#4C6A46');
-      const cPine = new THREE.Color('#3E5C46');
-      const cGranite = new THREE.Color('#8B8680');
-      const cSnow = new THREE.Color('#F4F3EE');
+      const cMeadow = new THREE.Color('#4F7A3E');
+      const cMeadow2 = new THREE.Color('#3C6132');
+      const cRock = new THREE.Color('#6E6A62');
+      const cSnow = new THREE.Color('#EDEDE6');
       const c = new THREE.Color();
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i), z = pos.getZ(i);
-        const h = terrainHeight(x, z);
+        const h = islandHeight(x, z);
         pos.setY(i, h);
-        // color by altitude with jittered banding
-        const jitter = Math.sin(x * 2.3 + z * 1.7) * 0.35;
-        if (h < 0.5) {
-          c.copy(cMeadow).lerp(cMeadow2, Math.min(1, Math.max(0, Math.sin(x * 0.5) * 0.5 + 0.5)));
-        } else if (h < 2.6 + jitter) {
-          c.copy(cMeadow2).lerp(cPine, Math.min(1, (h - 0.5) / 2.0));
-        } else if (h < 5.2 + jitter) {
-          c.copy(cPine).lerp(cGranite, Math.min(1, (h - 2.6) / 2.6));
-        } else {
-          c.copy(cGranite).lerp(cSnow, Math.min(1, (h - 5.2) / 1.6));
-        }
+        const jitter = Math.sin(x * 3.1 + z * 2.3) * 0.2;
+        if (h < 0.7 + jitter) c.copy(cMeadow).lerp(cMeadow2, Math.random() * 0.5);
+        else if (h < 1.7 + jitter) c.copy(cMeadow2).lerp(cRock, (h - 0.7) / 1.0);
+        else c.copy(cRock).lerp(cSnow, Math.min(1, (h - 1.7) / 0.8));
+        // spotlight falloff baked toward the rim
+        const glow = Math.max(0.45, 1.12 - Math.hypot(x, z) / (ISLAND_R * 1.15));
+        c.multiplyScalar(glow);
         colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
       terrainGeo.computeVertexNormals();
       terrainGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     }
-    // simple slope-shaded material: vertex colors darkened by normal (baked light)
-    const terrain = new THREE.Mesh(terrainGeo, new THREE.MeshLambertMaterial({ vertexColors: true, fog: true, flatShading: true }));
+    const terrain = new THREE.Mesh(terrainGeo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }));
     scene.add(terrain);
-    scene.add(new THREE.AmbientLight('#FFFFFF', 0.85));
-    const sunLight = new THREE.DirectionalLight('#FFF4DC', 1.1);
-    sunLight.position.set(6, 12, 4);
-    scene.add(sunLight);
 
-    /* ═══════════════ glacial lake ═══════════════ */
-    const LAKE = { x: 3.4, z: -3.4, rx: 4.4, rz: 2.3 };
-    const lakeGeo = new THREE.CircleGeometry(1, 48);
-    lakeGeo.rotateX(-Math.PI / 2);
-    const lakeMat = new THREE.ShaderMaterial({
-      uniforms: { uTime, fogColor: { value: PAPER }, fogNear: { value: FOG_NEAR }, fogFar: { value: FOG_FAR } },
+    // rock underside — the floating-island skirt
+    const skirt = new THREE.Mesh(
+      new THREE.CylinderGeometry(ISLAND_R * 0.995, ISLAND_R * 0.55, 3.2, 48, 3),
+      new THREE.MeshLambertMaterial({ color: '#2A2723', flatShading: true })
+    );
+    skirt.position.y = -1.6;
+    scene.add(skirt);
+    const bottomCap = new THREE.Mesh(
+      new THREE.CircleGeometry(ISLAND_R * 0.55, 48),
+      new THREE.MeshLambertMaterial({ color: '#211E1B' })
+    );
+    bottomCap.rotation.x = Math.PI / 2;
+    bottomCap.position.y = -3.2;
+    scene.add(bottomCap);
+
+    /* ═══════════════ pond ═══════════════ */
+    const pondGeo = new THREE.CircleGeometry(1, 40);
+    pondGeo.rotateX(-Math.PI / 2);
+    const pondMat = new THREE.ShaderMaterial({
+      uniforms: { uTime },
       vertexShader: /* glsl */`
         varying vec2 vUv;
-        varying float vFogDepth;
         void main() {
           vUv = uv;
-          vec4 mv = modelViewMatrix * vec4(position, 1.0);
-          vFogDepth = -mv.z;
-          gl_Position = projectionMatrix * mv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: /* glsl */`
         uniform float uTime;
-        uniform vec3 fogColor;
-        uniform float fogNear, fogFar;
         varying vec2 vUv;
-        varying float vFogDepth;
         void main() {
-          vec3 deep = vec3(0.243, 0.588, 0.573);   // glacial teal
-          vec3 light = vec3(0.561, 0.847, 0.808);
-          float ripple = sin(vUv.x * 34.0 + uTime * 1.3) * sin(vUv.y * 26.0 - uTime * 0.9);
+          vec3 deep = vec3(0.16, 0.45, 0.44);
+          vec3 light = vec3(0.42, 0.78, 0.74);
+          float ripple = sin(vUv.x * 30.0 + uTime * 1.3) * sin(vUv.y * 24.0 - uTime * 0.9);
           vec3 col = mix(deep, light, 0.5 + ripple * 0.25);
-          // bright rim like shallow water at the shore
           float d = distance(vUv, vec2(0.5));
-          col = mix(col, light, smoothstep(0.38, 0.5, d) * 0.5);
-          float fogF = smoothstep(fogNear, fogFar, vFogDepth);
-          gl_FragColor = vec4(mix(col, fogColor, fogF), 1.0);
+          col = mix(col, light, smoothstep(0.36, 0.5, d) * 0.45);
+          gl_FragColor = vec4(col, 1.0);
         }
       `,
     });
-    const lake = new THREE.Mesh(lakeGeo, lakeMat);
-    lake.scale.set(LAKE.rx, 1, LAKE.rz);
-    lake.position.set(LAKE.x, 0.02, LAKE.z);
-    scene.add(lake);
-    function inLake(x, z, pad = 1.15) {
-      const dx = (x - LAKE.x) / (LAKE.rx * pad), dz = (z - LAKE.z) / (LAKE.rz * pad);
+    const pond = new THREE.Mesh(pondGeo, pondMat);
+    pond.scale.set(POND.rx, 1, POND.rz);
+    pond.position.set(POND.x, -0.02, POND.z);
+    scene.add(pond);
+    function inPond(x, z, pad = 1.2) {
+      const dx = (x - POND.x) / (POND.rx * pad), dz = (z - POND.z) / (POND.rz * pad);
       return dx * dx + dz * dz < 1;
     }
 
-    /* ═══════════════ meadow grass (valley only) ═══════════════ */
-    const BLADES = isMobile ? 12000 : 24000;
+    /* ═══════════════ meadow grass ═══════════════ */
+    const BLADES = isMobile ? 9000 : 20000;
     const bladeBase = new THREE.BufferGeometry();
     bladeBase.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-      -0.035, 0, 0,   0.035, 0, 0,   0, 1, 0
+      -0.03, 0, 0,   0.03, 0, 0,   0, 1, 0
     ]), 3));
     bladeBase.setAttribute('aY', new THREE.BufferAttribute(new Float32Array([0, 0, 1]), 1));
 
@@ -719,64 +917,62 @@
     grassGeo.attributes.position = bladeBase.attributes.position;
     grassGeo.attributes.aY = bladeBase.attributes.aY;
 
-    const offsets = [], scales = [], hues = [], phases = [];
+    const gOffsets = [], gScales = [], gHues = [], gPhases = [];
     let placed = 0;
     while (placed < BLADES) {
-      const x = (Math.random() * 2 - 1) * 17;
-      const z = -5.5 + Math.random() * 9.5;   // valley band
-      if (inLake(x, z)) continue;
-      const y = terrainHeight(x, z);
-      if (y > 0.6) continue;                   // meadow stays low
-      offsets.push(x, y, z);
-      scales.push(0.22 + Math.random() * 0.28);
-      hues.push(Math.random());
-      phases.push(Math.random() * Math.PI * 2);
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * (ISLAND_R - 0.3);
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (inPond(x, z)) continue;
+      const y = islandHeight(x, z);
+      if (y > 1.1) continue;
+      gOffsets.push(x, y, z);
+      gScales.push(0.2 + Math.random() * 0.3);
+      gHues.push(Math.random());
+      gPhases.push(Math.random() * Math.PI * 2);
       placed++;
     }
     grassGeo.instanceCount = placed;
-    grassGeo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3));
-    grassGeo.setAttribute('aScale',  new THREE.InstancedBufferAttribute(new Float32Array(scales), 1));
-    grassGeo.setAttribute('aHue',    new THREE.InstancedBufferAttribute(new Float32Array(hues), 1));
-    grassGeo.setAttribute('aPhase',  new THREE.InstancedBufferAttribute(new Float32Array(phases), 1));
+    grassGeo.setAttribute('aOffset', new THREE.InstancedBufferAttribute(new Float32Array(gOffsets), 3));
+    grassGeo.setAttribute('aScale',  new THREE.InstancedBufferAttribute(new Float32Array(gScales), 1));
+    grassGeo.setAttribute('aHue',    new THREE.InstancedBufferAttribute(new Float32Array(gHues), 1));
+    grassGeo.setAttribute('aPhase',  new THREE.InstancedBufferAttribute(new Float32Array(gPhases), 1));
 
     const grassMat = new THREE.ShaderMaterial({
-      uniforms: { uTime, uPointer, fogColor: { value: PAPER }, fogNear: { value: FOG_NEAR }, fogFar: { value: FOG_FAR } },
+      uniforms: { uTime, uPointer, uIslandR: { value: ISLAND_R } },
       side: THREE.DoubleSide,
       vertexShader: /* glsl */`
         attribute vec3 aOffset;
         attribute float aScale, aHue, aPhase, aY;
         uniform float uTime;
         uniform vec3 uPointer;
-        varying float vY, vHue, vFogDepth;
+        varying float vY, vHue, vGlow;
+        uniform float uIslandR;
         void main() {
           vY = aY; vHue = aHue;
+          vGlow = clamp(1.15 - length(aOffset.xz) / (uIslandR * 1.15), 0.4, 1.1);
           vec3 p = position * aScale;
           p.y *= (1.0 + aScale);
-          float sway = sin(uTime * 1.6 + aPhase + aOffset.x * 0.4) * 0.14
+          float sway = sin(uTime * 1.6 + aPhase + aOffset.x * 0.5) * 0.13
                      + sin(uTime * 3.7 + aPhase * 2.0) * 0.04;
           p.x += sway * aY * aY;
           vec2 d = aOffset.xz - uPointer.xz;
           float dist = length(d);
-          if (dist < 1.6) {
-            p.xz += normalize(d) * (1.0 - dist / 1.6) * 0.35 * aY;
+          if (dist < 1.4) {
+            p.xz += normalize(d) * (1.0 - dist / 1.4) * 0.3 * aY;
           }
-          vec4 mv = modelViewMatrix * vec4(p + aOffset, 1.0);
-          vFogDepth = -mv.z;
-          gl_Position = projectionMatrix * mv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p + aOffset, 1.0);
         }
       `,
       fragmentShader: /* glsl */`
-        varying float vY, vHue, vFogDepth;
-        uniform vec3 fogColor;
-        uniform float fogNear, fogFar;
+        varying float vY, vHue, vGlow;
         void main() {
-          vec3 root = vec3(0.216, 0.310, 0.212);
-          vec3 tipA = vec3(0.475, 0.604, 0.396);
-          vec3 tipB = vec3(0.686, 0.749, 0.396);
+          vec3 root = vec3(0.11, 0.20, 0.10);
+          vec3 tipA = vec3(0.42, 0.62, 0.28);
+          vec3 tipB = vec3(0.65, 0.78, 0.30);
           vec3 tip = mix(tipA, tipB, vHue);
-          vec3 col = mix(root, tip, vY);
-          float fogF = smoothstep(fogNear, fogFar, vFogDepth);
-          gl_FragColor = vec4(mix(col, fogColor, fogF), 1.0);
+          vec3 col = mix(root, tip, vY) * vGlow;
+          gl_FragColor = vec4(col, 1.0);
         }
       `,
     });
@@ -784,199 +980,175 @@
     grass.frustumCulled = false;
     scene.add(grass);
 
-    /* ═══════════════ faceted ramp material ═══════════════ */
-    function rampMaterial(hex, doubleSide = false) {
-      const c = new THREE.Color(hex);
-      const shadow = c.clone().multiplyScalar(0.5).lerp(new THREE.Color('#2E3B33'), 0.3);
-      return new THREE.ShaderMaterial({
-        side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
-        uniforms: {
-          uLit: { value: c },
-          uShadow: { value: shadow },
-          uRim: { value: new THREE.Color('#FFF6D8') },
-          fogColor: { value: PAPER }, fogNear: { value: FOG_NEAR }, fogFar: { value: FOG_FAR },
-        },
-        vertexShader: /* glsl */`
-          varying vec3 vN, vV;
-          varying float vFogDepth;
-          void main() {
-            vN = normalize(normalMatrix * normal);
-            vec4 mv = modelViewMatrix * vec4(position, 1.0);
-            vV = normalize(-mv.xyz);
-            vFogDepth = -mv.z;
-            gl_Position = projectionMatrix * mv;
-          }
-        `,
-        fragmentShader: /* glsl */`
-          uniform vec3 uLit, uShadow, uRim, fogColor;
-          uniform float fogNear, fogFar;
-          varying vec3 vN, vV;
-          varying float vFogDepth;
-          void main() {
-            vec3 L = normalize(vec3(0.5, 0.9, 0.4));
-            float ndl = dot(vN, L) * 0.5 + 0.5;
-            vec3 col = mix(uShadow, uLit, smoothstep(0.25, 0.85, ndl));
-            float rim = pow(1.0 - max(dot(vN, vV), 0.0), 3.0);
-            col += uRim * rim * 0.3;
-            float fogF = smoothstep(fogNear, fogFar, vFogDepth);
-            gl_FragColor = vec4(mix(col, fogColor, fogF), 1.0);
-          }
-        `,
-      });
+    /* ═══════════════ wildflowers (points) ═══════════════ */
+    const FLOWERS = isMobile ? 450 : 900;
+    const fPos = new Float32Array(FLOWERS * 3);
+    const fCol = new Float32Array(FLOWERS * 3);
+    const flowerPalette = ['#F0C64A', '#E88D3D', '#E86FA0', '#EDEDE6', '#9BD1E8'].map(h => new THREE.Color(h));
+    let fi = 0;
+    while (fi < FLOWERS) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * (ISLAND_R - 0.5);
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (inPond(x, z)) continue;
+      const y = islandHeight(x, z);
+      if (y > 1.0) continue;
+      fPos[fi * 3] = x; fPos[fi * 3 + 1] = y + 0.28 + Math.random() * 0.22; fPos[fi * 3 + 2] = z;
+      const c = flowerPalette[Math.floor(Math.random() * flowerPalette.length)];
+      const glow = Math.max(0.45, 1.1 - r / (ISLAND_R * 1.15));
+      fCol[fi * 3] = c.r * glow; fCol[fi * 3 + 1] = c.g * glow; fCol[fi * 3 + 2] = c.b * glow;
+      fi++;
     }
-    function faceted(geo) {
-      const g = geo.toNonIndexed();
-      g.computeVertexNormals();
-      return g;
-    }
+    const flowerGeo = new THREE.BufferGeometry();
+    flowerGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
+    flowerGeo.setAttribute('color', new THREE.BufferAttribute(fCol, 3));
+    const flowers = new THREE.Points(flowerGeo, new THREE.PointsMaterial({
+      vertexColors: true, size: 0.09, sizeAttenuation: true,
+    }));
+    scene.add(flowers);
 
-    /* ═══════════════ alpine creatures ═══════════════ */
+
+    /* ═══════════════ wireframe agents ═══════════════ */
+    function wire(geo, colorHex) {
+      return new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo, 12),
+        new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95 })
+      );
+    }
     function noise1(t, p) {
       return Math.sin(t * 0.7 + p) * 0.5 + Math.sin(t * 1.7 + p * 2.1) * 0.35 + Math.sin(t * 3.1 + p * 0.7) * 0.15;
     }
 
-    class Creature {
+    class Agent {
       constructor(proj, index) {
         this.proj = proj;
         this.species = proj.species;
+        this.color = proj.color;
         this.seed = index * 137.5;
         this.group = new THREE.Group();
         this.nearPointer = 0;
         this.vx = 0; this.vz = 0;
         this.heading = Math.random() * Math.PI * 2;
+        this.speedNow = 0;
 
         if (this.species === 'ibex') {
-          this.homeX = -3.2; this.homeZ = 1.2;
-          this.range = { x: [-5.5, -0.8], z: [0.2, 2.8] };
-          this.labelY = 0;
+          this.homeX = -2.8; this.homeZ = 1.6;
+          this.range = 3.2;
         } else if (this.species === 'marmot') {
-          this.homeX = 2.0; this.homeZ = 2.0;
-          this.range = { x: [0.8, 4.6], z: [1.0, 3.2] };
-          this.labelY = 0;
-        } else { // flock
-          this.homeX = LAKE.x; this.homeZ = LAKE.z;
-          this.range = { x: [LAKE.x - 1.6, LAKE.x + 1.6], z: [LAKE.z - 1.2, LAKE.z + 1.2] };
-          this.labelY = 1.4;
+          this.homeX = 1.2; this.homeZ = 3.6;
+          this.range = 2.6;
+        } else {
+          this.homeX = 2.6; this.homeZ = -2.2;
+          this.range = 2.0;
         }
         this.x = this.homeX; this.z = this.homeZ;
+        this.labelY = this.species === 'flock' ? 1.6 : 0.2;
         this.build();
+        this.buildTrail();
         scene.add(this.group);
       }
 
       build() {
-        if (this.species === 'ibex') this.buildIbex();
-        else if (this.species === 'marmot') this.buildMarmot();
-        else this.buildFlock();
+        const c = this.color;
+        if (this.species === 'ibex') {
+          const body = wire(new THREE.BoxGeometry(0.72, 0.4, 0.34), c);
+          body.position.set(0, 0.62, 0);
+          this.group.add(body);
+          const head = wire(new THREE.BoxGeometry(0.26, 0.24, 0.22), c);
+          head.position.set(0.48, 0.94, 0);
+          this.group.add(head);
+          for (const side of [-1, 1]) {
+            const horn = wire(new THREE.TorusGeometry(0.24, 0.03, 4, 8, Math.PI * 0.85), c);
+            horn.position.set(0.4, 1.06, side * 0.08);
+            horn.rotation.set(side * 0.15, 0, Math.PI * 0.7);
+            this.group.add(horn);
+          }
+          for (const [lx, lz] of [[-0.28, -0.13], [-0.28, 0.13], [0.3, -0.13], [0.3, 0.13]]) {
+            const leg = wire(new THREE.BoxGeometry(0.06, 0.46, 0.06), c);
+            leg.position.set(lx, 0.24, lz);
+            this.group.add(leg);
+          }
+        } else if (this.species === 'marmot') {
+          this.sitGroup = new THREE.Group();
+          const body = wire(new THREE.SphereGeometry(0.3, 6, 4), c);
+          body.scale.set(1.2, 0.85, 0.95);
+          body.position.y = 0.28;
+          this.sitGroup.add(body);
+          const head = wire(new THREE.SphereGeometry(0.15, 5, 4), c);
+          head.position.set(0.3, 0.54, 0);
+          this.sitGroup.add(head);
+          this.group.add(this.sitGroup);
+        } else {
+          this.birds = [];
+          for (let i = 0; i < 5; i++) {
+            const bird = new THREE.Group();
+            const body = wire(new THREE.ConeGeometry(0.07, 0.3, 4), c);
+            body.rotation.z = -Math.PI / 2;
+            bird.add(body);
+            const wings = [];
+            const wingGeo = new THREE.PlaneGeometry(0.3, 0.13);
+            wingGeo.translate(0.15, 0, 0);
+            for (const side of [-1, 1]) {
+              const w = wire(wingGeo, c);
+              w.rotation.y = side > 0 ? 0 : Math.PI;
+              w.rotation.x = Math.PI / 2;
+              bird.add(w);
+              wings.push(w);
+            }
+            bird.userData = { phase: (i / 5) * Math.PI * 2, r: 0.9 + (i % 3) * 0.3, wings, h: 2.2 + (i % 3) * 0.35 };
+            this.group.add(bird);
+            this.birds.push(bird);
+          }
+        }
+        // marker flag above (murmur-style lollipop)
+        const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.5, 3), new THREE.MeshBasicMaterial({ color: c }));
+        const ring = wire(new THREE.CircleGeometry(0.09, 10), c);
+        const markerY = this.species === 'flock' ? 3.4 : 1.6;
+        stick.position.y = markerY;
+        ring.position.y = markerY + 0.32;
+        this.marker = new THREE.Group();
+        this.marker.add(stick, ring);
+        this.group.add(this.marker);
 
         this.proxy = new THREE.Mesh(
-          new THREE.SphereGeometry(this.species === 'flock' ? 1.6 : 1.0, 8, 6),
+          new THREE.SphereGeometry(this.species === 'flock' ? 1.5 : 1.0, 8, 6),
           new THREE.MeshBasicMaterial({ visible: false })
         );
-        this.proxy.userData.creature = this;
-        this.proxy.position.y = this.species === 'flock' ? 0 : 0.5;
+        this.proxy.userData.agent = this;
+        this.proxy.position.y = this.species === 'flock' ? 2.4 : 0.6;
         this.group.add(this.proxy);
       }
 
-      buildIbex() {
-        const fur = rampMaterial('#B08D5E');
-        const dark = rampMaterial('#6E5638');
-        // body
-        const body = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.34, 7, 5)), fur);
-        body.scale.set(1.5, 1.0, 0.8);
-        body.position.y = 0.62;
-        this.group.add(body);
-        // neck + head
-        const head = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.16, 6, 5)), fur);
-        head.position.set(0.52, 0.98, 0);
-        this.group.add(head);
-        const snout = new THREE.Mesh(faceted(new THREE.ConeGeometry(0.09, 0.22, 5)), dark);
-        snout.rotation.z = -Math.PI / 2;
-        snout.position.set(0.68, 0.94, 0);
-        this.group.add(snout);
-        // the horns — the ibex signature, big curved arcs
-        for (const side of [-1, 1]) {
-          const horn = new THREE.Mesh(
-            faceted(new THREE.TorusGeometry(0.26, 0.035, 5, 10, Math.PI * 0.85)),
-            dark
-          );
-          horn.position.set(0.46, 1.06, side * 0.07);
-          horn.rotation.set(side * 0.15, 0, Math.PI * 0.7);
-          this.group.add(horn);
+      buildTrail() {
+        if (this.species === 'flock') { this.trail = null; return; }
+        this.TRAIL_N = 42;
+        this.trailPos = new Float32Array(this.TRAIL_N * 3);
+        for (let i = 0; i < this.TRAIL_N; i++) {
+          this.trailPos[i * 3] = this.x;
+          this.trailPos[i * 3 + 1] = islandHeight(this.x, this.z) + 0.06;
+          this.trailPos[i * 3 + 2] = this.z;
         }
-        // legs
-        const legGeo = faceted(new THREE.CylinderGeometry(0.04, 0.035, 0.6, 5));
-        for (const [lx, lz] of [[-0.32, -0.16], [-0.32, 0.16], [0.34, -0.16], [0.34, 0.16]]) {
-          const leg = new THREE.Mesh(legGeo, dark);
-          leg.position.set(lx, 0.3, lz);
-          this.group.add(leg);
-        }
-        this.body = body;
-      }
-
-      buildMarmot() {
-        const fur = rampMaterial('#A98A6A');
-        const belly = rampMaterial('#C9AE8C');
-        this.sitGroup = new THREE.Group();
-        const body = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.3, 7, 5)), fur);
-        body.scale.set(1.2, 0.85, 0.95);
-        body.position.y = 0.28;
-        this.sitGroup.add(body);
-        const chest = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.18, 6, 5)), belly);
-        chest.position.set(0.22, 0.3, 0);
-        this.sitGroup.add(chest);
-        const head = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.15, 6, 5)), fur);
-        head.position.set(0.32, 0.55, 0);
-        this.sitGroup.add(head);
-        for (const side of [-1, 1]) {
-          const ear = new THREE.Mesh(faceted(new THREE.SphereGeometry(0.045, 5, 4)), fur);
-          ear.position.set(0.28, 0.68, side * 0.09);
-          this.sitGroup.add(ear);
-        }
-        this.group.add(this.sitGroup);
-        this.body = body;
-        this.sitPhase = Math.random() * 10;
-      }
-
-      buildFlock() {
-        // alpine choughs: black birds, yellow beaks, circling as one community
-        this.birds = [];
-        const feathers = rampMaterial('#26231F', true);
-        const beakMat = rampMaterial('#E8B94C');
-        for (let i = 0; i < 6; i++) {
-          const bird = new THREE.Group();
-          const body = new THREE.Mesh(faceted(new THREE.ConeGeometry(0.07, 0.3, 5)), feathers);
-          body.rotation.z = -Math.PI / 2;
-          bird.add(body);
-          const beak = new THREE.Mesh(faceted(new THREE.ConeGeometry(0.03, 0.09, 4)), beakMat);
-          beak.rotation.z = -Math.PI / 2;
-          beak.position.x = 0.19;
-          bird.add(beak);
-          const wingGeo = new THREE.PlaneGeometry(0.34, 0.14);
-          wingGeo.translate(0.17, 0, 0);
-          const wings = [];
-          for (const side of [-1, 1]) {
-            const w = new THREE.Mesh(wingGeo, feathers);
-            w.rotation.y = side > 0 ? 0 : Math.PI;
-            w.rotation.x = Math.PI / 2;
-            bird.add(w);
-            wings.push(w);
-          }
-          bird.userData = { phase: (i / 6) * Math.PI * 2, r: 1.1 + (i % 3) * 0.35, wings, h: 2.6 + (i % 3) * 0.4 };
-          this.group.add(bird);
-          this.birds.push(bird);
-        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(this.trailPos, 3));
+        this.trail = new THREE.Points(geo, new THREE.PointsMaterial({
+          color: '#E84A33', size: 0.11, transparent: true, opacity: 0.9,
+        }));
+        this.trail.frustumCulled = false;
+        scene.add(this.trail);
+        this.trailIdx = 0;
+        this.trailTimer = 0;
       }
 
       update(t, dt) {
         const s = this.seed;
-        const speedBase = this.species === 'flock' ? 0.4 : this.species === 'ibex' ? 0.25 : 0.3;
+        const speedBase = this.species === 'flock' ? 0.3 : this.species === 'ibex' ? 0.28 : 0.32;
 
-        this.heading += noise1(t * 0.35, s) * 0.7 * dt;
-        this.vx += (this.homeX - this.x) * 0.1 * dt;
-        this.vz += (this.homeZ - this.z) * 0.1 * dt;
+        this.heading += noise1(t * 0.35, s) * 0.8 * dt;
+        this.vx += (this.homeX - this.x) * 0.12 * dt;
+        this.vz += (this.homeZ - this.z) * 0.12 * dt;
 
         const dp = Math.hypot(uPointer.value.x - this.x, uPointer.value.z - this.z);
-        const near = dp < 2.5 ? 1 - dp / 2.5 : 0;
+        const near = dp < 2.2 ? 1 - dp / 2.2 : 0;
         this.nearPointer += (near - this.nearPointer) * (1 - Math.exp(-5 * dt));
         const speed = speedBase * (1 - this.nearPointer * 0.6);
 
@@ -984,69 +1156,77 @@
         this.vz += Math.sin(this.heading) * speed * dt;
         this.vx *= Math.exp(-1.4 * dt);
         this.vz *= Math.exp(-1.4 * dt);
-        this.x = Math.max(this.range.x[0], Math.min(this.range.x[1], this.x + this.vx));
-        this.z = Math.max(this.range.z[0], Math.min(this.range.z[1], this.z + this.vz));
+        this.x += this.vx;
+        this.z += this.vz;
+        // stay within personal range and on the island
+        const dHome = Math.hypot(this.x - this.homeX, this.z - this.homeZ);
+        if (dHome > this.range) {
+          const f = this.range / dHome;
+          this.x = this.homeX + (this.x - this.homeX) * f;
+          this.z = this.homeZ + (this.z - this.homeZ) * f;
+        }
+        this.speedNow = Math.hypot(this.vx, this.vz);
 
-        const groundY = this.species === 'flock' ? 0 : terrainHeight(this.x, this.z);
+        const gy = islandHeight(this.x, this.z);
 
         if (this.species === 'ibex') {
-          const bob = Math.abs(Math.sin(t * 2.2 + s)) * 0.03;
-          this.group.position.set(this.x, groundY + bob, this.z);
+          this.group.position.set(this.x, gy + Math.abs(Math.sin(t * 2.2 + s)) * 0.02, this.z);
           const targetRot = Math.atan2(-Math.sin(this.heading), Math.cos(this.heading));
           this.group.rotation.y += (targetRot - this.group.rotation.y) * (1 - Math.exp(-2 * dt));
         } else if (this.species === 'marmot') {
-          // periodically sits up tall (the whistle pose)
-          const sit = Math.max(0, Math.sin(t * 0.5 + this.sitPhase)) ** 3;
+          const sit = Math.max(0, Math.sin(t * 0.5 + s)) ** 3;
+          if (this.lastSit !== undefined && this.lastSit < 0.75 && sit >= 0.75) sfx.whistle(clampPan(this.x));
+          this.lastSit = sit;
           this.sitGroup.rotation.z = sit * 0.9;
-          this.sitGroup.position.y = sit * 0.12;
-          this.group.position.set(this.x, groundY, this.z);
+          this.group.position.set(this.x, gy, this.z);
           const targetRot = Math.atan2(-Math.sin(this.heading), Math.cos(this.heading));
           this.group.rotation.y += (targetRot - this.group.rotation.y) * (1 - Math.exp(-2 * dt));
         } else {
-          this.group.position.set(this.x, 0, this.z);
+          this.group.position.set(this.x, islandHeight(this.x, this.z), this.z);
           for (const bird of this.birds) {
             const u = bird.userData;
-            const a = t * 0.7 + u.phase;
-            bird.position.set(
-              Math.cos(a) * u.r,
-              u.h + Math.sin(t * 1.3 + u.phase) * 0.25,
-              Math.sin(a) * u.r * 0.6
-            );
+            const a = t * 0.8 + u.phase;
+            bird.position.set(Math.cos(a) * u.r, u.h + Math.sin(t * 1.3 + u.phase) * 0.2, Math.sin(a) * u.r * 0.6);
             bird.rotation.y = -a + Math.PI / 2;
-            const flap = Math.sin(t * (reduce ? 2 : 11) + u.phase) * 0.7;
+            const flap = Math.sin(t * (reduce ? 2 : 11) + u.phase) * 0.6;
             u.wings[0].rotation.z = flap * 0.5;
             u.wings[1].rotation.z = -flap * 0.5;
           }
-          this.proxy.position.y = 2.8;
+        }
+
+        // marker gently bobs; brightens when near pointer
+        this.marker.position.y = Math.sin(t * 1.4 + s) * 0.05;
+        this.marker.rotation.y = t * 0.6;
+
+        // trail breadcrumbs
+        if (this.trail) {
+          this.trailTimer += dt;
+          if (this.trailTimer > 0.16) {
+            this.trailTimer = 0;
+            this.trailPos[this.trailIdx * 3] = this.x;
+            this.trailPos[this.trailIdx * 3 + 1] = gy + 0.18;
+            this.trailPos[this.trailIdx * 3 + 2] = this.z;
+            this.trailIdx = (this.trailIdx + 1) % this.TRAIL_N;
+            this.trail.geometry.attributes.position.needsUpdate = true;
+          }
         }
       }
     }
 
-    const creatures = projects.map((p, i) => new Creature(p, i));
-
-    /* ═══════════════ neon survey markers (the one artificial note) ═══════════════ */
-    const wireMat = new THREE.LineBasicMaterial({ color: '#47E0D6', transparent: true, opacity: 0.85 });
-    const wires = [];
-    const wirePositions = [[-6.5, 2.2, -6], [8.5, 3.0, -9]];
-    for (let i = 0; i < 2; i++) {
-      const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(0.5, 0.5, 0.5)), wireMat);
-      box.position.set(...wirePositions[i]);
-      scene.add(box);
-      wires.push(box);
-    }
+    const agents = projects.map((p, i) => new Agent(p, i));
 
     /* ═══════════════ drifting motes ═══════════════ */
-    const MOTES = 80;
+    const MOTES = 70;
     const motePos = new Float32Array(MOTES * 3);
     for (let i = 0; i < MOTES; i++) {
-      motePos[i * 3] = (Math.random() - 0.5) * 24;
-      motePos[i * 3 + 1] = Math.random() * 5;
-      motePos[i * 3 + 2] = -8 + (Math.random() - 0.5) * 16;
+      motePos[i * 3] = (Math.random() - 0.5) * 22;
+      motePos[i * 3 + 1] = Math.random() * 7 - 1;
+      motePos[i * 3 + 2] = (Math.random() - 0.5) * 22;
     }
     const moteGeo = new THREE.BufferGeometry();
     moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
     const motes = new THREE.Points(moteGeo, new THREE.PointsMaterial({
-      color: '#FFF6D8', size: 0.05, transparent: true, opacity: 0.7, fog: true,
+      color: '#CFE8A9', size: 0.05, transparent: true, opacity: 0.35,
     }));
     scene.add(motes);
 
@@ -1068,15 +1248,15 @@
     addEventListener('pointermove', e => updatePointer(e.clientX, e.clientY), { passive: true });
 
     addEventListener('pointerdown', e => {
-      if (e.target.closest('button, a, input, .sheet, .backdrop')) return;
+      if (e.target.closest('button, a, input, .sheet, .backdrop, .panel')) return;
       updatePointer(e.clientX, e.clientY);
       raycaster.setFromCamera(ndc, camera);
-      const hits = raycaster.intersectObjects(creatures.map(c => c.proxy));
-      if (hits.length) openSheet(hits[0].object.userData.creature.proj);
+      const hits = raycaster.intersectObjects(agents.map(c => c.proxy));
+      if (hits.length) openSheet(hits[0].object.userData.agent.proj);
     });
 
-    /* ═══════════════ creature labels ═══════════════ */
-    const buttons = creatures.map(c => {
+    /* ═══════════════ agent labels ═══════════════ */
+    const buttons = agents.map(c => {
       const b = document.createElement('button');
       b.className = 'creature-btn';
       b.style.setProperty('--dot', c.proj.color);
@@ -1088,42 +1268,219 @@
     });
     const _v = new THREE.Vector3();
     function updateButtons() {
-      creatures.forEach((c, i) => {
+      agents.forEach((c, i) => {
         _v.set(c.x, c.labelY, c.z).project(camera);
         const sx = Math.max(90, Math.min(innerWidth - 90, (_v.x * 0.5 + 0.5) * innerWidth));
         const sy = (-_v.y * 0.5 + 0.5) * innerHeight;
         const b = buttons[i];
         b.style.left = sx + 'px';
         b.style.top = (sy + 10) + 'px';
-        b.style.opacity = _v.z < 1 ? (0.78 + c.nearPointer * 0.22) : 0;
+        b.style.opacity = _v.z < 1 ? (0.8 + c.nearPointer * 0.2) : 0;
       });
     }
 
-    /* ═══════════════ ambient ticker ═══════════════ */
+    /* ═══════════════ ticker + events log ═══════════════ */
     const tickerText = document.getElementById('tickerText');
     const ticker = document.getElementById('ticker');
+    const logList = document.getElementById('logList');
     const verbs = {
-      ibex:   ['is surveying the ridge', 'is standing very still', 'found the highest rock'],
-      marmot: ['just whistled', 'is sunning itself', 'popped out of its burrow'],
-      flock:  ['are circling the lake', 'are riding the updraft', 'are gathering'],
+      ibex:   ['is surveying the ridge', 'stands very still', 'found the highest rock', 'scrapes at the frost line'],
+      marmot: ['just whistled', 'is sunning itself', 'popped out of its burrow', 'is gathering grass'],
+      flock:  ['are circling the pond', 'are riding the updraft', 'are gathering', 'call across the plot'],
     };
-    function tickerMessage() {
-      const c = creatures[Math.floor(Math.random() * creatures.length)];
-      const v = verbs[c.species] || verbs.ibex;
+    function agentEvent() {
+      const c = agents[Math.floor(Math.random() * agents.length)];
+      const v = verbs[c.species];
       const verb = v[Math.floor(Math.random() * v.length)];
       const topics = c.proj.topics || [];
       const topic = topics[Math.floor(Math.random() * topics.length)];
-      const subject = c.species === 'flock' ? 'the choughs' : c.species === 'ibex' ? 'the ibex' : 'the marmot';
-      return `${subject} ${verb} · ask about ${topic ? topic.label : c.proj.label}`;
+      const subject = c.species === 'flock' ? 'the choughs' : 'the ' + c.species;
+      return { text: `${subject} ${verb}`, ask: topic ? topic.label : c.proj.label, species: c.species, x: c.x };
     }
-    setInterval(() => {
+    function pushLog(text) {
+      const li = document.createElement('li');
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      li.innerHTML = `<span class="t">${hh}:${mm}</span><span>${text}</span>`;
+      logList.prepend(li);
+      while (logList.children.length > 11) logList.lastChild.remove();
+    }
+    function cycleTicker() {
+      const ev = agentEvent();
       ticker.classList.add('swap');
       setTimeout(() => {
-        tickerText.textContent = tickerMessage();
+        tickerText.textContent = `${ev.text} · ask about ${ev.ask}`;
         ticker.classList.remove('swap');
       }, 500);
-    }, 5000);
-    setTimeout(() => { tickerText.textContent = tickerMessage(); }, 2200);
+      pushLog(ev.text);
+      sfx.forSpecies(ev.species, clampPan(ev.x));
+    }
+    setInterval(cycleTicker, 5200);
+    setTimeout(cycleTicker, 2000);
+
+    /* ═══════════════ stats panel ═══════════════ */
+    const statTime = document.getElementById('statTime');
+    const statWeather = document.getElementById('statWeather');
+    const statTemp = document.getElementById('statTemp');
+    const statActivity = document.getElementById('statActivity');
+    const weathers = [
+      ['dry still', '14°C'], ['föhn wind', '18°C'], ['clear cold', '6°C'],
+      ['light haze', '11°C'], ['snow above 2000m', '3°C'],
+    ];
+    let weatherIdx = Math.floor(Math.random() * weathers.length);
+    function updateStats() {
+      const now = new Date();
+      statTime.textContent = now.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Zurich' });
+      const [w, temp] = weathers[weatherIdx];
+      statWeather.textContent = w;
+      statTemp.textContent = temp;
+      const avg = agents.reduce((a, c) => a + c.speedNow, 0) / agents.length;
+      statActivity.style.width = Math.min(96, Math.max(8, avg * 3200)) + '%';
+    }
+    setInterval(updateStats, 1000);
+    setInterval(() => { weatherIdx = (weatherIdx + 1) % weathers.length; }, 47000);
+    updateStats();
+
+    /* ═══════════════ alpine soundscape (WebAudio, all synthesized) ═══════════════ */
+    let audio = null;
+    const clampPan = x => Math.max(-1, Math.min(1, x / 8));
+
+    function makeNoiseBuffer(ctx, seconds = 2) {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return buf;
+    }
+
+    function initAudio() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+
+      // wind bed: looped noise through a slowly breathing bandpass
+      const wind = ctx.createBufferSource();
+      wind.buffer = makeNoiseBuffer(ctx);
+      wind.loop = true;
+      const windFilter = ctx.createBiquadFilter();
+      windFilter.type = 'bandpass';
+      windFilter.frequency.value = 480;
+      windFilter.Q.value = 0.5;
+      const windGain = ctx.createGain();
+      windGain.gain.value = 0.09;
+      const windLfo = ctx.createOscillator();
+      windLfo.frequency.value = 0.07;
+      const windLfoG = ctx.createGain();
+      windLfoG.gain.value = 0.05;
+      windLfo.connect(windLfoG).connect(windGain.gain);
+      wind.connect(windFilter).connect(windGain).connect(master);
+
+      // pond bed: soft low lapping
+      const pondSrc = ctx.createBufferSource();
+      pondSrc.buffer = makeNoiseBuffer(ctx);
+      pondSrc.loop = true;
+      const pondFilter = ctx.createBiquadFilter();
+      pondFilter.type = 'lowpass';
+      pondFilter.frequency.value = 260;
+      const pondGain = ctx.createGain();
+      pondGain.gain.value = 0.035;
+      const pondLfo = ctx.createOscillator();
+      pondLfo.frequency.value = 0.21;
+      const pondLfoG = ctx.createGain();
+      pondLfoG.gain.value = 0.02;
+      pondLfo.connect(pondLfoG).connect(pondGain.gain);
+      pondSrc.connect(pondFilter).connect(pondGain).connect(master);
+
+      wind.start(); windLfo.start(); pondSrc.start(); pondLfo.start();
+      master.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 1.4);
+      return { ctx, master };
+    }
+
+    const sfx = {
+      whistle(pan = 0) {  // marmot: single bright alpine peep, falling
+        if (!audio) return;
+        const { ctx, master } = audio;
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(2600, t);
+        o.frequency.exponentialRampToValueAtTime(1850, t + 0.22);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.28, t + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        const p = ctx.createStereoPanner();
+        p.pan.value = pan;
+        o.connect(g).connect(p).connect(master);
+        o.start(t); o.stop(t + 0.36);
+      },
+      chough(pan = 0) {  // descending raspy "chiah"
+        if (!audio) return;
+        const { ctx, master } = audio;
+        const t = ctx.currentTime;
+        const o = ctx.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(1350, t);
+        o.frequency.exponentialRampToValueAtTime(680, t + 0.16);
+        const f = ctx.createBiquadFilter();
+        f.type = 'bandpass';
+        f.frequency.value = 1000;
+        f.Q.value = 2.5;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(0.14, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        const p = ctx.createStereoPanner();
+        p.pan.value = pan;
+        o.connect(f).connect(g).connect(p).connect(master);
+        o.start(t); o.stop(t + 0.24);
+      },
+      tick(pan = 0) {  // ibex hoof on rock: tiny bright click
+        if (!audio) return;
+        const { ctx, master } = audio;
+        const t = ctx.currentTime;
+        const src = ctx.createBufferSource();
+        src.buffer = makeNoiseBuffer(ctx, 0.05);
+        const f = ctx.createBiquadFilter();
+        f.type = 'highpass';
+        f.frequency.value = 2200;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.12, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+        const p = ctx.createStereoPanner();
+        p.pan.value = pan;
+        src.connect(f).connect(g).connect(p).connect(master);
+        src.start(t);
+      },
+      forSpecies(species, pan) {
+        if (species === 'marmot') this.whistle(pan);
+        else if (species === 'flock') this.chough(pan);
+        else this.tick(pan);
+      },
+    };
+
+    const soundBtn = document.getElementById('soundBtn');
+    soundBtn.addEventListener('click', () => {
+      const on = soundBtn.getAttribute('aria-pressed') === 'true';
+      if (on) {
+        soundBtn.setAttribute('aria-pressed', 'false');
+        soundBtn.textContent = 'sound · off';
+        if (audio) audio.ctx.suspend();
+      } else {
+        soundBtn.setAttribute('aria-pressed', 'true');
+        soundBtn.textContent = 'sound · on';
+        if (!audio) audio = initAudio();
+        audio.ctx.resume();
+      }
+    });
+
+    // occasional ambient calls even without ticker events
+    setInterval(() => {
+      if (!audio || audio.ctx.state !== 'running') return;
+      const flock = agents.find(a => a.species === 'flock');
+      if (flock && Math.random() < 0.7) sfx.chough(clampPan(flock.x));
+    }, 9000);
 
     /* ═══════════════ main loop ═══════════════ */
     let last = performance.now();
@@ -1138,17 +1495,15 @@
 
       uPointer.value.lerp(pointerTarget, 1 - Math.exp(-8 * dt));
 
-      camera.position.x += (camBase.x + parallax.x * 0.7 - camera.position.x) * (1 - Math.exp(-3 * dt));
-      camera.position.y += (camBase.y - parallax.y * 0.35 - camera.position.y) * (1 - Math.exp(-3 * dt));
+      // slow orbit + pointer parallax
+      const theta = (reduce ? 0.4 : t * 0.04) + parallax.x * 0.25;
+      camera.position.x += (Math.sin(theta) * CAM_R - camera.position.x) * (1 - Math.exp(-2.5 * dt));
+      camera.position.z += (Math.cos(theta) * CAM_R - camera.position.z) * (1 - Math.exp(-2.5 * dt));
+      camera.position.y += (CAM_H - parallax.y * 0.8 - camera.position.y) * (1 - Math.exp(-2.5 * dt));
       camera.lookAt(lookAt);
 
-      for (const c of creatures) c.update(t, dt);
-
-      wires.forEach((w, i) => {
-        w.rotation.x = t * 0.3 * (i ? 1 : -1);
-        w.rotation.y = t * 0.4;
-      });
-      motes.rotation.y = t * 0.008;
+      for (const c of agents) c.update(t, dt);
+      motes.rotation.y = t * 0.006;
 
       renderer.render(scene, camera);
       updateButtons();
@@ -1168,6 +1523,9 @@
     document.addEventListener('visibilitychange', () => {
       running = !document.hidden;
       if (running && !reduce) { last = performance.now(); requestAnimationFrame(frame); }
+      if (audio && soundBtn.getAttribute('aria-pressed') === 'true') {
+        audio.ctx[document.hidden ? 'suspend' : 'resume']();
+      }
     });
 
     /* ═══════════════ sheet + chat ═══════════════ */
@@ -1198,7 +1556,7 @@
       sheetTitle.textContent = proj.label;
       sheetRole.textContent = proj.role || '';
       sheetSummary.textContent = proj.summary || '';
-      sheetHero.style.setProperty('--hero-color', proj.color || 'var(--meadow)');
+      sheetHero.style.setProperty('--hero-color', proj.color || 'var(--green)');
 
       conv.innerHTML = '';
       const existing = conversations.get(proj.id);
