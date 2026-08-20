@@ -270,6 +270,24 @@
     .flip .back { transform: rotateX(180deg); color: var(--pine); }
     .row:hover .flip, .row:focus-visible .flip { transform: rotateX(180deg); }
 
+    /* ─── the signature: per-character flip ───
+       each glyph is its own inline-block that rolls 180° with a stagger.
+       backface stays visible, so you read the mirrored back of the letter
+       mid-roll — the same wit as the logo flipping when the menu opens. */
+    .ch {
+      display: inline-block;
+      transition: transform 0.3s;
+      backface-visibility: visible;
+      -webkit-backface-visibility: visible;
+    }
+    .row:hover .name .ch,
+    .row:focus-visible .name .ch,
+    .menu a:hover .ch,
+    .menu a:focus-visible .ch,
+    footer a:hover .ch,
+    footer a:focus-visible .ch { transform: rotateX(180deg); }
+    @media (prefers-reduced-motion: reduce) { .ch { transition: none; } }
+
     /* profile columns */
     .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 1.8rem 1.5rem; }
     .col h3 { font-size: 1rem; font-weight: 400; color: var(--mute); margin: 0 0 0.7rem; }
@@ -321,26 +339,25 @@
       z-index: 45;
     }
     .backdrop.open { opacity: 1; pointer-events: auto; }
+    /* a project is a page, not a panel: full-screen takeover with its own URL */
     .sheet {
       position: fixed;
-      left: 0; right: 0; bottom: 0;
-      height: 94svh;
+      inset: 0;
       background: var(--paper);
       color: var(--ink);
-      border-top: 1px solid var(--line);
-      border-radius: 20px 20px 0 0;
-      transform: translateY(102%);
-      transition: transform 0.5s cubic-bezier(.2,.85,.2,1);
+      transform: translateY(2rem);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(.2,.85,.2,1), visibility 0.45s;
       z-index: 50;
-      box-shadow: 0 -24px 70px rgba(20, 18, 15, 0.18);
       display: flex; flex-direction: column;
-      will-change: transform;
+      will-change: transform, opacity;
     }
-    .sheet.open { transform: translateY(0); }
+    .sheet.open { transform: none; opacity: 1; visibility: visible; }
     .sheet-bar {
       display: flex; align-items: baseline; justify-content: space-between;
       gap: 1rem;
-      padding: 1.1rem clamp(1.1rem, 4vw, 2.2rem) 0.9rem;
+      padding: max(1.1rem, env(safe-area-inset-top)) clamp(1.1rem, 4vw, 2.6rem) 0.9rem;
       flex: 0 0 auto;
     }
     .sheet-bar h2 {
@@ -360,9 +377,10 @@
       flex: 1 1 auto;
       overflow-y: auto;
       overscroll-behavior: contain;
-      padding: 0 clamp(1.1rem, 4vw, 2.2rem) 1rem;
+      padding: 0 clamp(1.1rem, 4vw, 2.6rem) max(2rem, env(safe-area-inset-bottom));
       scroll-behavior: smooth;
     }
+    .sheet-inner { max-width: 1240px; margin: 0 auto; }
     .info-toggle {
       font: inherit; font-size: 0.95rem;
       background: none; border: 0; color: var(--mute);
@@ -433,16 +451,8 @@
     .others h3 { font-size: 0.95rem; font-weight: 400; color: var(--mute); margin: 0 0 0.5rem; }
 
     @media (min-width: 860px) {
-      .sheet {
-        left: 50%; right: auto;
-        width: min(760px, 92vw);
-        height: 92svh;
-        bottom: 0;
-        transform: translateX(-50%) translateY(102%);
-        border-radius: 20px 20px 0 0;
-      }
-      .sheet.open { transform: translateX(-50%) translateY(0); }
       .mosaic { grid-template-columns: repeat(3, 1fr); }
+      .sheet-bar { padding-top: 1.6rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -593,6 +603,7 @@
       <button class="sheet-close" id="sheetClose" aria-label="Close project">Close</button>
     </div>
     <div class="sheet-scroll" id="sheetScroll">
+     <div class="sheet-inner">
       <button class="info-toggle" id="infoToggle" aria-expanded="false">+ Info</button>
       <div class="info-body" id="infoBody"></div>
 
@@ -613,6 +624,7 @@
         <h3>Other projects</h3>
         <ul class="index" id="others"></ul>
       </section>
+     </div>
     </div>
   </aside>
 
@@ -679,6 +691,25 @@
 
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const projects = JSON.parse(document.getElementById('projects-data').textContent);
+
+    /* ═════════ split link text into per-character spans ═════════ */
+    function splitChars(el) {
+      if (el.dataset.split) return;
+      el.dataset.split = '1';
+      const text = el.textContent;
+      el.textContent = '';
+      [...text].forEach((ch, i) => {
+        const s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = ch === ' ' ? ' ' : ch;
+        s.style.transitionDelay = (i * 18) + 'ms';
+        el.appendChild(s);
+      });
+    }
+    function splitAll() {
+      document.querySelectorAll('.row .name, .menu a, footer a:not(.note)').forEach(splitChars);
+    }
+    splitAll();
 
     /* ═════════ scroll reveal (opacity only) ═════════ */
     const io = new IntersectionObserver((entries) => {
@@ -1260,11 +1291,19 @@
     const conversations = new Map();
 
     document.querySelectorAll('[data-project]').forEach(el => {
-      el.addEventListener('click', () => {
-        const p = projects.find(x => x.id === el.dataset.project);
-        if (p) openSheet(p);
-      });
+      el.addEventListener('click', () => { location.hash = '/work/' + el.dataset.project; });
     });
+
+    /* each project is a real, shareable URL — and browser back closes it */
+    function routeFromHash() {
+      const m = /^#\/work\/(.+)$/.exec(location.hash);
+      if (m) {
+        const p = projects.find(x => x.id === m[1]);
+        if (p) { openSheet(p); return; }
+      }
+      if (sheet.classList.contains('open')) closeSheet();
+    }
+    addEventListener('hashchange', routeFromHash);
 
     function openSheet(proj) {
       activeProject = proj;
@@ -1273,6 +1312,7 @@
 
       sheetTitle.textContent = proj.label;
       sheetDisc.textContent = proj.disciplines + ' — ' + proj.role;
+      document.title = proj.label + ' — melanie bossert';
       infoBody.textContent = proj.info || '';
       infoBody.classList.remove('open');
       infoToggle.setAttribute('aria-expanded', 'false');
@@ -1300,9 +1340,10 @@
         b.className = 'row';
         b.style.setProperty('--thumb', p.color);
         b.innerHTML = `<span class="name">${p.label}</span><span class="thumb" aria-hidden="true"></span><span class="meta">${p.year}</span>`;
-        b.addEventListener('click', () => { sheetScroll.scrollTop = 0; openSheet(p); });
+        b.addEventListener('click', () => { sheetScroll.scrollTop = 0; location.hash = '/work/' + p.id; });
         li.appendChild(b);
         othersEl.appendChild(li);
+        splitChars(b.querySelector('.name'));
       });
 
       sheetScroll.scrollTop = 0;
@@ -1315,11 +1356,16 @@
       sheet.classList.remove('open');
       backdrop.classList.remove('open');
       backdrop.setAttribute('aria-hidden', 'true');
+      document.title = 'melanie bossert — ai product designer';
       activeProject = null;
       lastFocused?.focus?.({ preventScroll: true });
     }
-    document.getElementById('sheetClose').addEventListener('click', closeSheet);
-    backdrop.addEventListener('click', closeSheet);
+    function leaveProject() {
+      if (location.hash) history.pushState('', document.title, location.pathname + location.search);
+      closeSheet();
+    }
+    document.getElementById('sheetClose').addEventListener('click', leaveProject);
+    backdrop.addEventListener('click', leaveProject);
     infoToggle.addEventListener('click', () => {
       const open = infoBody.classList.toggle('open');
       infoToggle.setAttribute('aria-expanded', String(open));
@@ -1327,7 +1373,7 @@
     });
     addEventListener('keydown', e => {
       if (!sheet.classList.contains('open')) return;
-      if (e.key === 'Escape') { closeSheet(); return; }
+      if (e.key === 'Escape') { leaveProject(); return; }
       if (e.key === 'Tab') {
         const f = sheet.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
         if (!f.length) return;
@@ -1410,6 +1456,9 @@
         }
       }, 600 + Math.random() * 400);
     });
+
+    // deep link on first load: /#/work/gemini opens straight into the project
+    routeFromHash();
   </script>
 </body>
 </html>
