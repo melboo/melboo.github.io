@@ -684,8 +684,8 @@
     scene.background = null; // paper shows through
 
     const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 80);
-    camera.position.set(0, 8.2, 16.5);
-    const lookAt = new THREE.Vector3(0, 0.5, 0);
+    camera.position.set(0, 7.4, 16.5);
+    const lookAt = new THREE.Vector3(0, 0.3, 0);
     camera.lookAt(lookAt);
 
     function sizeToBox() {
@@ -706,26 +706,38 @@
 
     const ISLAND_R = 8.2;
     const POND = { x: 2.6, z: 1.6, rx: 1.7, rz: 1.15 };
+    // organic lobed outline — the plot is a patch of land, not a perfect circle
+    function edgeR(theta) {
+      return ISLAND_R * (0.80
+        + 0.08 * Math.sin(theta * 3 + 1.7)
+        + 0.05 * Math.sin(theta * 5 - 0.4)
+        + 0.04 * Math.sin(theta * 2 + 3.1));
+    }
     function islandHeight(x, z) {
       const r = Math.hypot(x, z);
-      if (r > ISLAND_R) return 0;
-      // soft round mound — engadin pasture, no hard edges
-      const dome = (1 - (r / ISLAND_R) ** 2) * 1.05;
+      const er = edgeR(Math.atan2(z, x));
+      const rr = r / er;
+      if (rr > 1) return -0.3 * Math.min(1, rr - 1);
+      // shallow rolling pasture, engadin-style
+      const dome = (1 - rr * rr) * 0.7;
       let h = dome
             + Math.sin(x * 0.55 + 1.2) * Math.cos(z * 0.6 - 0.4) * 0.14
             + Math.sin(x * 0.22 - 0.7) * 0.1;
       const pdx = (x - POND.x) / (POND.rx * 1.5), pdz = (z - POND.z) / (POND.rz * 1.5);
       const pondD = Math.sqrt(pdx * pdx + pdz * pdz);
-      if (pondD < 1) h = h * pondD + 0.62 * (1 - pondD);
+      if (pondD < 1) h = h * pondD + 0.4 * (1 - pondD);
       return h;
+    }
+    function insidePlot(x, z, margin = 0) {
+      return Math.hypot(x, z) < edgeR(Math.atan2(z, x)) - margin;
     }
 
     function discGeometry(radius, rings, segments) {
       const positions = [], indices = [];
       for (let r = 0; r <= rings; r++) {
-        const rad = (r / rings) * radius;
         for (let s = 0; s <= segments; s++) {
           const a = (s / segments) * Math.PI * 2;
+          const rad = (r / rings) * edgeR(a); // disc warped to the lobed outline — no apron
           positions.push(Math.cos(a) * rad, 0, Math.sin(a) * rad);
         }
       }
@@ -757,6 +769,9 @@
         const n2 = Math.sin(x * 0.31 - 0.6) * Math.cos(z * 0.27 + 1.4) * 0.5 + 0.5;
         c.copy(cSun).lerp(cDeep, n1);
         if (n2 > 0.72) c.lerp(cDry, (n2 - 0.72) * 2.2);
+        // the ground itself stays pale — the green lives in the stipple layers above it
+        const rr = Math.hypot(x, z) / edgeR(Math.atan2(z, x));
+        c.lerp(new THREE.Color('#FFFFFF'), Math.min(1, 0.55 + Math.max(0, (rr - 0.55) * 1.4)));
         colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
       }
       terrainGeo.computeVertexNormals();
@@ -767,42 +782,59 @@
     world.add(new THREE.Mesh(terrainGeo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true })));
 
     // soft rounded underside — a cushion, not a plinth
-    const under = new THREE.Mesh(
-      new THREE.SphereGeometry(ISLAND_R * 0.99, 48, 20, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
-      new THREE.MeshLambertMaterial({ color: '#7A6A55', flatShading: true })
-    );
-    under.scale.y = 0.45;
-    under.position.y = 0.02;
-    world.add(under);
-
-    /* engadin boulders + bare larches */
-    const rockMatA = new THREE.MeshLambertMaterial({ color: '#948B7D', flatShading: true });
-    const rockMatB = new THREE.MeshLambertMaterial({ color: '#7E766B', flatShading: true });
-    [[-1.2, -3.0, 1.5], [0.6, -3.7, 1.0], [-2.6, -2.0, 0.85], [1.9, -4.1, 0.65]].forEach(([x, z, s], i) => {
-      const rock = new THREE.Mesh(new THREE.SphereGeometry(s, 7, 5), i % 2 ? rockMatB : rockMatA);
-      rock.scale.set(1.25, 0.8, 1.0);
+    /* big painterly rocks — displaced, mottled, like the reference */
+    function paintedRock(s, hex) {
+      const geo = new THREE.SphereGeometry(s, 10, 8);
+      const pos = geo.attributes.position;
+      const col = [];
+      const base = new THREE.Color(hex);
+      const dark = base.clone().multiplyScalar(0.5);
+      const v = new THREE.Vector3();
+      for (let i = 0; i < pos.count; i++) {
+        v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+        const crumple = 1 + noise1(v.x * 2.1, v.y * 1.7 + v.z) * 0.5 * 0.22;
+        v.multiplyScalar(crumple);
+        pos.setXYZ(i, v.x, v.y, v.z);
+        const mottle = noise1(v.x * 1.3 + v.y, v.z * 1.1) * 0.5 + 0.5;
+        const c2 = base.clone().lerp(dark, mottle);
+        col.push(c2.r, c2.g, c2.b);
+      }
+      geo.computeVertexNormals();
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      return new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }));
+    }
+    [[0.4, -1.3, 1.9, '#6B5648'], [-1.7, -2.3, 1.25, '#7A6152'], [1.8, -2.8, 0.95, '#5E4C40'], [-0.3, -3.4, 0.75, '#6B5648']].forEach(([x, z, s, hex], i) => {
+      const rock = paintedRock(s, hex);
+      rock.scale.set(1.25, 0.72, 1.0);
       rock.rotation.y = i * 1.7;
-      rock.position.set(x, islandHeight(x, z) + s * 0.26, z);
+      rock.position.set(x, islandHeight(x, z) + s * 0.3, z);
       world.add(rock);
     });
-    const woodMat = new THREE.MeshLambertMaterial({ color: '#9A9084', flatShading: true });
-    [[-3.3, -3.2], [1.0, -4.6], [3.4, -3.3], [-0.6, -4.9]].forEach(([x, z], i) => {
-      const tree = new THREE.Group();
-      const th = 1.5 + (i % 2) * 0.5;
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.08, th, 5), woodMat);
-      trunk.position.y = th / 2;
-      tree.add(trunk);
-      for (let b = 0; b < 3; b++) {
-        const bl = 0.45 + b * 0.12;
-        const br = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.025, bl, 4), woodMat);
-        br.position.y = th * 0.55 + b * th * 0.16;
-        br.rotation.z = (b % 2 ? 0.9 : -0.8) + i * 0.1;
-        br.position.x = (b % 2 ? bl : -bl) * 0.32;
-        tree.add(br);
+
+    /* gnarled bare trees — twisted branch chains, clustered at the back */
+    const woodMat = new THREE.MeshLambertMaterial({ color: '#4A423C', flatShading: true });
+    function growBranch(parent, len, rad, depth, seed) {
+      const geo = new THREE.CylinderGeometry(rad * 0.55, rad, len, 5);
+      geo.translate(0, len / 2, 0);
+      const seg = new THREE.Mesh(geo, woodMat);
+      parent.add(seg);
+      if (depth > 0) {
+        const kids = depth > 1 ? 2 : (noise1(seed, depth) > 0 ? 2 : 1);
+        for (let i = 0; i < kids; i++) {
+          const joint = new THREE.Group();
+          joint.position.y = len;
+          joint.rotation.z = (i ? -1 : 1) * (0.35 + Math.abs(noise1(seed + i, depth)) * 0.55);
+          joint.rotation.y = seed * 2.1 + i * 2.4 + depth;
+          seg.add(joint);
+          growBranch(joint, len * 0.72, rad * 0.6, depth - 1, seed + depth + i);
+        }
       }
-      tree.rotation.z = (i % 2 ? 0.06 : -0.08);
-      tree.rotation.y = i * 1.3;
-      tree.position.set(x, islandHeight(x, z), z);
+    }
+    [[-2.6, -3.4], [-1.3, -4.1], [-3.7, -2.2], [0.3, -4.5], [-0.7, -2.9]].forEach(([x, z], i) => {
+      const tree = new THREE.Group();
+      growBranch(tree, 0.85 + (i % 3) * 0.25, 0.075, 3, i * 3.7 + 1);
+      tree.rotation.z = (i % 2 ? 0.08 : -0.1);
+      tree.position.set(x, islandHeight(x, z) - 0.05, z);
       world.add(tree);
     });
 
@@ -833,7 +865,7 @@
     });
     const pond = new THREE.Mesh(pondGeo, pondMat);
     pond.scale.set(POND.rx, 1, POND.rz);
-    pond.position.set(POND.x, 0.66, POND.z);
+    pond.position.set(POND.x, 0.44, POND.z);
     world.add(pond);
     function inPond(x, z, pad = 1.2) {
       const dx = (x - POND.x) / (POND.rx * pad), dz = (z - POND.z) / (POND.rz * pad);
@@ -851,18 +883,21 @@
     const grassGeo = new THREE.InstancedBufferGeometry();
     grassGeo.attributes.position = bladeBase.attributes.position;
     grassGeo.attributes.aY = bladeBase.attributes.aY;
-    const gOffsets = [], gScales = [], gHues = [], gPhases = [];
+    const gOffsets = [], gScales = [], gHues = [], gPhases = [], gFades = [];
     let placedBlades = 0;
     while (placedBlades < BLADES) {
       const a = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random()) * (ISLAND_R - 0.3);
+      const er = edgeR(a);
+      const r = Math.sqrt(Math.random()) * er * 1.06; // slight overhang → fuzzy silhouette
       const x = Math.cos(a) * r, z = Math.sin(a) * r;
       if (inPond(x, z)) continue;
-      const y = islandHeight(x, z);
+      const y = Math.max(0, islandHeight(x, z));
+      const rr = r / er;
       gOffsets.push(x, y, z);
-      gScales.push(0.2 + Math.random() * 0.3);
+      gScales.push(0.26 + Math.random() * 0.34);
       gHues.push(Math.random());
       gPhases.push(Math.random() * Math.PI * 2);
+      gFades.push(Math.min(1, Math.max(0, (rr - 0.6) / 0.4)));
       placedBlades++;
     }
     grassGeo.instanceCount = placedBlades;
@@ -870,16 +905,17 @@
     grassGeo.setAttribute('aScale',  new THREE.InstancedBufferAttribute(new Float32Array(gScales), 1));
     grassGeo.setAttribute('aHue',    new THREE.InstancedBufferAttribute(new Float32Array(gHues), 1));
     grassGeo.setAttribute('aPhase',  new THREE.InstancedBufferAttribute(new Float32Array(gPhases), 1));
+    grassGeo.setAttribute('aFade',   new THREE.InstancedBufferAttribute(new Float32Array(gFades), 1));
     const grassMat = new THREE.ShaderMaterial({
       uniforms: { uTime },
       side: THREE.DoubleSide,
       vertexShader: /* glsl */`
         attribute vec3 aOffset;
-        attribute float aScale, aHue, aPhase, aY;
+        attribute float aScale, aHue, aPhase, aY, aFade;
         uniform float uTime;
-        varying float vY, vHue;
+        varying float vY, vHue, vFade;
         void main() {
-          vY = aY; vHue = aHue;
+          vY = aY; vHue = aHue; vFade = aFade;
           vec3 p = position * aScale;
           p.y *= (1.0 + aScale);
           float sway = sin(uTime * 1.6 + aPhase + aOffset.x * 0.5) * 0.13
@@ -889,13 +925,15 @@
         }
       `,
       fragmentShader: /* glsl */`
-        varying float vY, vHue;
+        varying float vY, vHue, vFade;
         void main() {
           vec3 root = vec3(0.16, 0.27, 0.14);
           vec3 tipA = vec3(0.47, 0.66, 0.31);
           vec3 tipB = vec3(0.68, 0.79, 0.33);
           vec3 tip = mix(tipA, tipB, vHue);
-          gl_FragColor = vec4(mix(root, tip, vY), 1.0);
+          vec3 col = mix(root, tip, vY);
+          col = mix(col, vec3(1.0), vFade * 0.97);  // rim blades melt into the page
+          gl_FragColor = vec4(col, 1.0);
         }
       `,
     });
@@ -903,9 +941,32 @@
     grass.frustumCulled = false;
     world.add(grass);
 
+    /* pointillist stipple — thousands of tiny dots carrying the meadow and its melt into white */
+    const STIPPLE = isSmall ? 9000 : 16000;
+    const sPos = [], sCol = [];
+    const stippleGreens = ['#5C8A48', '#6E9048', '#8FB562', '#A9C78A', '#FFFFFF', '#EFF5E8'].map(h => new THREE.Color(h));
+    const white = new THREE.Color('#FFFFFF');
+    for (let i = 0; i < STIPPLE; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const er = edgeR(a);
+      const r = Math.sqrt(Math.random()) * er * 1.12;
+      const x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (inPond(x, z)) continue;
+      const y = Math.max(0, islandHeight(x, z));
+      sPos.push(x, y + 0.03 + Math.random() * 0.3, z);
+      const rr = r / er;
+      const c = stippleGreens[Math.floor(Math.random() * stippleGreens.length)].clone();
+      c.lerp(white, Math.min(1, Math.max(0, (rr - 0.5) / 0.5)));
+      sCol.push(c.r, c.g, c.b);
+    }
+    const stippleGeo = new THREE.BufferGeometry();
+    stippleGeo.setAttribute('position', new THREE.Float32BufferAttribute(sPos, 3));
+    stippleGeo.setAttribute('color', new THREE.Float32BufferAttribute(sCol, 3));
+    world.add(new THREE.Points(stippleGeo, new THREE.PointsMaterial({ vertexColors: true, size: 0.05, sizeAttenuation: true })));
+
     /* wildflowers — clustered like real alpine meadows */
     const FLOWERS = isSmall ? 700 : 1300;
-    const fPos = [], fColArr = [];
+    const fPos = [], fColArr = [], fStem = [], fStemCol = [];
     const flowerPalette = ['#E8B23A', '#E07E2E', '#DB5F92', '#FFFFFF', '#F5E9C8', '#7FB8DB'].map(h => new THREE.Color(h));
     const clusters = [];
     while (clusters.length < 11) {
@@ -927,16 +988,32 @@
         x = Math.cos(a) * r; z = Math.sin(a) * r;
         col = flowerPalette[Math.floor(Math.random() * flowerPalette.length)];
       }
-      if (Math.hypot(x, z) > ISLAND_R - 0.5 || inPond(x, z)) continue;
+      if (!insidePlot(x, z, 0.1) || inPond(x, z)) continue;
       const y = islandHeight(x, z);
-      fPos.push(x, y + 0.26 + Math.random() * 0.24, z);
+      // each flower is a visible stem with a dot head, leaning slightly outward
+      const stemH = 0.3 + Math.random() * 0.5;
+      const rr = Math.hypot(x, z) / edgeR(Math.atan2(z, x));
+      const lean = rr * 0.22 * stemH;
+      const lx = x + (x / (Math.hypot(x, z) + 0.001)) * lean;
+      const lz = z + (z / (Math.hypot(x, z) + 0.001)) * lean;
+      fStem.push(x, y, z, lx, y + stemH, lz);
+      const sc = 0.35 + rr * 0.35; // stems whiten at the rim
+      fStemCol.push(
+        0.25 + sc * 0.75, 0.35 + sc * 0.65, 0.2 + sc * 0.8,
+        0.25 + sc * 0.75, 0.35 + sc * 0.65, 0.2 + sc * 0.8
+      );
+      fPos.push(lx, y + stemH, lz);
       fColArr.push(col.r, col.g, col.b);
       fi++;
     }
+    const stemGeo = new THREE.BufferGeometry();
+    stemGeo.setAttribute('position', new THREE.Float32BufferAttribute(fStem, 3));
+    stemGeo.setAttribute('color', new THREE.Float32BufferAttribute(fStemCol, 3));
+    world.add(new THREE.LineSegments(stemGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8 })));
     const flowerGeo = new THREE.BufferGeometry();
     flowerGeo.setAttribute('position', new THREE.Float32BufferAttribute(fPos, 3));
     flowerGeo.setAttribute('color', new THREE.Float32BufferAttribute(fColArr, 3));
-    world.add(new THREE.Points(flowerGeo, new THREE.PointsMaterial({ vertexColors: true, size: 0.1, sizeAttenuation: true })));
+    world.add(new THREE.Points(flowerGeo, new THREE.PointsMaterial({ vertexColors: true, size: 0.11, sizeAttenuation: true })));
 
     /* wireframe agents (ambient) */
     function wire(geo, colorHex) {
@@ -1022,7 +1099,7 @@
 
       buildTrail() {
         if (this.species === 'flock') { this.trail = null; return; }
-        this.TRAIL_N = 42;
+        this.TRAIL_N = 72;
         this.trailPos = new Float32Array(this.TRAIL_N * 3);
         for (let i = 0; i < this.TRAIL_N; i++) {
           this.trailPos[i * 3] = this.x;
@@ -1087,7 +1164,7 @@
 
         if (this.trail) {
           this.trailTimer += dt;
-          if (this.trailTimer > 0.16) {
+          if (this.trailTimer > 0.22) {
             this.trailTimer = 0;
             this.trailPos[this.trailIdx * 3] = this.x;
             this.trailPos[this.trailIdx * 3 + 1] = gy + 0.18;
